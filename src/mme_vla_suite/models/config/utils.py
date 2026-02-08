@@ -7,13 +7,8 @@ def get_history_config(history_config: str | DictConfig):
         return None
     if isinstance(history_config, str):
         import omegaconf
-        
-        if "realrobot" in history_config:
-            history_config = omegaconf.OmegaConf.load(os.path.join("src/mme_vla_suite/models/config/mme_vla_suite_realrobot", history_config))
-        else:
-            history_config = omegaconf.OmegaConf.load(
-                os.path.join("src/mme_vla_suite/models/config/robomme_sim", history_config)
-            )
+        history_config = omegaconf.OmegaConf.load(
+            os.path.join("src/mme_vla_suite/models/config/robomme", history_config))
         return history_config
     elif isinstance(history_config, DictConfig):
         return history_config
@@ -32,14 +27,14 @@ def parse_config(config: DictConfig):
             config.memory_token_dim = 1024
 
         perceptual_mem_config = config.perceptual_memory
-        if perceptual_mem_config.token_sampling.type == "fast":
-            static_token_per_image = perceptual_mem_config.token_sampling.fast_token_per_image
-        elif perceptual_mem_config.token_sampling.type == "slow":
-            static_token_per_image = perceptual_mem_config.token_sampling.slow_token_per_image
-        elif perceptual_mem_config.token_sampling.type == "mid":
-            static_token_per_image = perceptual_mem_config.token_sampling.mid_token_per_image
+        if perceptual_mem_config.frame_sampling.type == "fast":
+            static_token_per_image = perceptual_mem_config.frame_sampling.fast_token_per_image
+        elif perceptual_mem_config.frame_sampling.type == "slow":
+            static_token_per_image = perceptual_mem_config.frame_sampling.slow_token_per_image
+        elif perceptual_mem_config.frame_sampling.type == "mid":
+            static_token_per_image = perceptual_mem_config.frame_sampling.mid_token_per_image
         else:
-            raise ValueError(f"Not supported token sampling type: {perceptual_mem_config.token_sampling.type}")
+            raise ValueError(f"Not supported token sampling type: {perceptual_mem_config.frame_sampling.type}")
         perceptual_mem_config.token_per_image = static_token_per_image
 
 

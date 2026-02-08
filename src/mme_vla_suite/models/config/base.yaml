@@ -28,10 +28,10 @@ memory_token_dim: 2048 # context: 2048; modulation: 1024; expert: 1024
 representation_type: perceptual # [perceptual, recurrent, symbolic]
 perceptual_memory:
   budget: ${budget}
-  type: token_sampling # [token_sampling, token_dropping]
+  type: frame_sampling # [frame_sampling, token_dropping]
 
   # token sampling parameters
-  token_sampling:
+  frame_sampling:
     type: fast
     fast_token_per_image: 4
     mid_token_per_image: 16

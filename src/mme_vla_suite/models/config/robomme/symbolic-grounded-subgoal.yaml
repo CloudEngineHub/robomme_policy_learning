@@ -20,8 +20,8 @@ memory_token_dim: 2048
 representation_type: symbolic
 perceptual_memory:
   budget: 0
-  type: token_sampling
-  token_sampling:
+  type: frame_sampling
+  frame_sampling:
     type: fast
     fast_token_per_image: 4
     mid_token_per_image: 16

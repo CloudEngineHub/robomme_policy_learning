@@ -280,12 +280,12 @@ class MemoryBuffer:
         )
         
     
-    def get_token_sampling_indices(self, step_idx, token_budget, token_per_image):
+    def get_frame_sampling_indices(self, step_idx, token_budget, token_per_image):
         max_size = token_budget // (token_per_image * self.num_views)
         return even_sampling_indices(step_idx, max_size)
     
     
-    def _prepare_token_sampling(self, history_feats, indices_to_load, token_budget, token_per_image):
+    def _prepare_frame_sampling(self, history_feats, indices_to_load, token_budget, token_per_image):
         spatial_size = str(int(math.sqrt(token_per_image)))
         spatial_key = f"{spatial_size}x{spatial_size}"
         max_size = token_budget // (token_per_image * self.num_views)
@@ -311,22 +311,22 @@ class MemoryBuffer:
         return img_emb, pos_emb, state_emb, mask
             
     
-    def prepare_token_sampling(self, step_idx, token_budget, token_per_image, history_feats_gather_fn,  *args, **kwargs):
-        indices_to_load = self.get_token_sampling_indices(step_idx, token_budget, token_per_image)
+    def prepare_frame_sampling(self, step_idx, token_budget, token_per_image, history_feats_gather_fn,  *args, **kwargs):
+        indices_to_load = self.get_frame_sampling_indices(step_idx, token_budget, token_per_image)
         # print("step_idx: ", step_idx, "indices_to_load: ", indices_to_load, "length: ", len(indices_to_load))
-        # self._visualize_token_sampling(indices_to_load, step_idx)
+        # self._visualize_frame_sampling(indices_to_load, step_idx)
         history_feats = history_feats_gather_fn(indices_to_load, *args, **kwargs)
-        return self._prepare_token_sampling(history_feats, indices_to_load, token_budget, token_per_image)
+        return self._prepare_frame_sampling(history_feats, indices_to_load, token_budget, token_per_image)
 
 
-    def _visualize_token_sampling(self, indices_to_load, step_idx):
+    def _visualize_frame_sampling(self, indices_to_load, step_idx):
         images = [self._history_feats[idx]["image_pixels"][0] for idx in indices_to_load]
         
         import imageio, os
         imageio.mimsave(
             os.path.join(
                 "debug",
-                f"token_sampling_step_{step_idx}.mp4",
+                f"frame_sampling_step_{step_idx}.mp4",
             ),
             images,
             fps=2,

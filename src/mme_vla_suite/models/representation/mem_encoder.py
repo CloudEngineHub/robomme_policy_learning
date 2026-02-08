@@ -43,7 +43,7 @@ class FeatureEncoder(nnx.Module):
             input_dim += pos_output_dim
 
         if output_dim_for_percep is not None:
-            self.encoder_precep = nnx.Linear(
+            self.encoder_static = nnx.Linear(
                 input_dim,
                 output_dim_for_percep,
                 rngs=rngs,
@@ -51,7 +51,7 @@ class FeatureEncoder(nnx.Module):
                 kernel_init=kernel_init,
             )
         else:
-            self.encoder_precep = None
+            self.encoder_static = None
         if ouput_dim_for_recur is not None:
             self.encoder_recur = nnx.Linear(
                 input_dim,
@@ -115,7 +115,7 @@ class FeatureEncoder(nnx.Module):
             static_image_emb,
             static_pos_emb,
             static_state_emb,
-            self.encoder_precep,
+            self.encoder_static,
         )
 
     def encode_recurrent_memory(

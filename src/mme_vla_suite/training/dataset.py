@@ -131,11 +131,11 @@ class RoboMMEDataset(Dataset):
             kept_indices=kept_indices, epis_idx=epis_idx)
         
 
-    def prepare_token_sampling(self,  epis_idx,  step_idx):
+    def prepare_frame_sampling(self,  epis_idx,  step_idx):
         token_per_image = self.history_config.perceptual_memory.token_per_image
         token_budget = self.history_config.perceptual_memory.budget
 
-        return self.mem_buffer.prepare_token_sampling(
+        return self.mem_buffer.prepare_frame_sampling(
             step_idx, token_budget, token_per_image, self._gather_history_feat, 
             epis_idx=epis_idx)
 
@@ -231,7 +231,7 @@ class RoboMMEDataset(Dataset):
                         static_pos_emb,
                         static_state_emb,
                         static_mask, # slow >=64, mid >=16,fast >=4
-                    ) = self.prepare_token_sampling(epis_idx, step_idx)
+                    ) = self.prepare_frame_sampling(epis_idx, step_idx)
                 
                 data["static_image_emb"] = static_img_emb
                 data["static_pos_emb"] = static_pos_emb

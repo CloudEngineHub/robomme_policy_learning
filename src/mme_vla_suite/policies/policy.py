@@ -93,7 +93,7 @@ class MME_VLA_Policy:
             "actions": self._sample_actions(sample_rng, observation, **self._sample_kwargs),
         }
         model_time = time.monotonic() - start_time
-        outputs = jax.tree.map(lambda x: np.asarray(x[0, ...]), outputs)        
+        outputs = jax.tree.map(lambda x: np.asarray(x[0, ...]), outputs)      
         outputs = self._output_transform(outputs)
         outputs["infer_time_ms"] = model_time * 1000
         
@@ -150,7 +150,7 @@ class MME_VLA_Policy:
             else:
                 token_per_image = self.config.perceptual_memory.token_per_image
                 static_image_emb, static_pos_emb, static_state_emb, static_mask = \
-                    self.mem_buffer.prepare_token_sampling(
+                    self.mem_buffer.prepare_frame_sampling(
                         self.step_idx, token_budget, token_per_image, history_feats_gather_fn)
             
             inputs["static_image_emb"] = static_image_emb

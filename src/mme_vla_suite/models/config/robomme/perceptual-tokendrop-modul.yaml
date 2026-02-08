@@ -21,7 +21,7 @@ representation_type: perceptual
 perceptual_memory:
   budget: 512
   type: token_dropping
-  token_sampling:
+  frame_sampling:
     type: fast
     fast_token_per_image: 4
     mid_token_per_image: 16
