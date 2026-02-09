@@ -6,11 +6,11 @@
 - [Installation](#installation)
   - [Install RoboMME Simulator](#install-robomme-simulator)
   - [Install MME-VLA-Suite Repo](#install-mme-vla-suite-repo)
+- [Repository Structure](#repository-structure)
 - [Download](#download)
   - [Download Training Data](#download-training-data)
   - [Download Pre-trained Models](#download-pre-trained-models)
   - [Download Fine-tuned VLA/VLM Checkpoints](#download-fine-tuned-vlavlm-checkpoints)
-  - [Repository structure](#repository-structure)
 - [Model Training](#model-training)
   - [Data Preparation](#data-preparation)
   - [Train π₀.₅ baseline](#train-π₀₅-baseline)
@@ -26,6 +26,8 @@
 ## Updates
 
 - [02/2026] We release MME-VLA Suite, a family of memory-augmented vision-language-action (VLA) models based on the $\pi_{0.5}$ backbone. See our paper for details and analysis.
+
+
 
 
 ## Installation
@@ -54,6 +56,28 @@ GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
 ```
 
 Set the `OPENPI_DATA_HOME` path in your `~/.bashrc`, e.g. `export OPENPI_DATA_HOME=<your_openpi_homedir>`.
+
+## Repository Structure
+```
+.
+├── data
+│   ├── robomme_h5_data                 # download robomme raw files here
+│   ├── robomme_preprocessed_data       # preprocessed robomme data
+│   └── vlm_subgoal_prediction_data     # subgoal data for VLM prediction, used in symbolic memory
+├── examples
+│   └── robomme                         # RoboMME simulator codes
+├── packages
+├── runs
+│   ├── assets                          # save norm_stats json files
+│   ├── ckpts                           # fine-tuned checkpoints
+│   └── evaluation                      # evaluation results
+├── scripts                             # train/eval/data generation scripts
+├── setup_robomme.bash
+├── src
+│   ├── mme_vla_suite                   # MME_VLA code, follows openpi structure 
+│   └── openpi                          # original openpi code with minor changes
+└── third_party
+```
 
 
 ## Download
@@ -133,29 +157,6 @@ cd MME-VLA-Suite/runs/ckpts
 git clone git@hf.co:Yinpei/pi05_baseline
 ```
 
-
-
-### Repository structure
-```
-.
-├── data
-│   ├── robomme_h5_data                 # download robomme raw files here
-│   ├── robomme_preprocessed_data       # preprocessed robomme data
-│   └── vlm_subgoal_prediction_data     # subgoal data for VLM prediction, used in symbolic memory
-├── examples
-│   └── robomme                         # RoboMME simulator codes
-├── packages
-├── runs
-│   ├── assets                          # save norm_stats json files
-│   ├── ckpts                           # fine-tuned checkpoints
-│   └── evaluation                      # evaluation results
-├── scripts                             # train/eval/data generation scripts
-├── setup_robomme.bash
-├── src
-│   ├── mme_vla_suite                   # MME_VLA code, follows openpi structure 
-│   └── openpi                          # original openpi code with minor changes
-└── third_party
-```
 
 
 ## Model Training
