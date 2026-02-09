@@ -199,44 +199,21 @@ Running `eval.sh` automatically starts two tmux windows: one for the policy serv
 
 
 ### Manual evaluation (per model)
-**π₀.₅ baseline**
-```
-# terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8001 policy:checkpoint --policy.dir=runs/ckpts/pi05_baseline/pi05_baseline/79999 --policy.config=pi05_baseline
+Details are provided in [here](manual_evaluation)
 
-# terminal 1 
-source setup_robomme.bash
-python examples/history_bench_sim/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=pi05_baseline --args.model_ckpt_id=79999 --args.no-use-history
-```
 
-**Symbolic MME-VLA**
 
-*SimpleSG + Oracle*
-```
-# terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8001 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-simple-subgoal/79999 --policy.config=mme_vla_suite
+## TroubleShooting
+Q1: Failure about Vulkan Installation.  
+A1: We recommend resintall nvidia driver and vulkan packages, we use nvidia driver 570.211.01 and vulkan 1.3.275.  
 
-# terminal 1 
-source setup_robomme.bash
-python examples/history_bench_sim/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=mme_vla_suite --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-oracle 
-```
-*SimpleSG + QwenVL*
-```
-# terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8001 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-simple-subgoal/79999 --policy.config=mme_vla_suite
 
-# terminal 1 
-source setup_robomme.bash
-python examples/history_bench_sim/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=mme_vla_suite --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-qwenvl 
-```
-*SimpleSG + Gemini*  
-Set the `GOOGLE_API_KEY` environment variable 
-```
-# terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8001 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-simple-subgoal/79999 --policy.config=mme_vla_suite
+## Ackowledgement 
+This work was supported in part by NSF SES-2128623, NSF CAREER #2337870, NSF NRI #2220876, NSF NAIRR250085. We would also like to thank the wondeful [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main) codebase from Physical-Intelligence.
 
-# terminal 1 
-source setup_robomme.bash
-python examples/history_bench_sim/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=mme_vla_suite --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-gemini 
-```
 
+## Bibtext
+
+```
+...
+```
