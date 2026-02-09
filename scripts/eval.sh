@@ -1,16 +1,22 @@
 # Possible MODEL_TYPE:
-# prior methods: pi05_baseline, MemER
+# Prior methods:
+# pi05_baseline, MemER
 
+# Symbolic Memory:
 # symbolic_simpleSG_oracle,  symbolic_simpleSG_gemini,  symbolic_simpleSG_qwenvl, 
 # symbolic_groundedSG_oracle, symbolic_groundedSG_gemini, symbolic_groundedSG_qwenvl
 
+# Perceptual Memory:
 # perceptual-framesamp-context, perceptual-framesamp-modul, perceptual-framesamp-expert
 # perceptual-tokendrop-context, perceptual-tokendrop-modul, perceptual-tokendrop-expert
 
+# Recurrent Memory:
 # recurrent-rmt-context, recurrent-rmt-modul, recurrent-rmt-expert
 # recurrent-ttt-context, recurrent-ttt-modul, recurrent-ttt-expert
 
-MODEL_TYPE="perceptual-framesamp-expert"
+# set the MODEL_TYPE from the list above according to your needs
+
+MODEL_TYPE="symbolic_groundedSG_oracle"
 SEED=7
 PORT=8001
 CKPT_ID=79999

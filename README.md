@@ -1,5 +1,28 @@
 # MME-VLA Policy Learning and Evaluation
 
+## Outline
+
+- [Updates](#updates)
+- [Installation](#installation)
+  - [Install RoboMME Simulator](#install-robomme-simulator)
+  - [Install MME-VLA-Suite Repo](#install-mme-vla-suite-repo)
+- [Download](#download)
+  - [Download Training Data](#download-training-data)
+  - [Download Pre-trained Models](#download-pre-trained-models)
+  - [Download Fine-tuned VLA/VLM Checkpoints](#download-fine-tuned-vlavlm-checkpoints)
+  - [Repository structure](#repository-structure)
+- [Model Training](#model-training)
+  - [Data Preparation](#data-preparation)
+  - [Train π₀.₅ baseline](#train-π₀₅-baseline)
+  - [Train MME-VLA policies](#train-mme-vla-policies)
+  - [Train VLM subgoal predictor](#train-vlm-subgoal-predictor)
+- [Evaluation](#evaluation)
+  - [Evaluation with the integrated script](#evaluation-with-the-integrated-script)
+  - [Manual evaluation (per model)](#manual-evaluation-per-model)
+- [TroubleShooting](#troubleshooting)
+- [Ackowledgement](#ackowledgement)
+- [Bibtext](#bibtext)
+
 ## Updates
 
 - [02/2026] We release MME-VLA Suite, a family of memory-augmented vision-language-action (VLA) models based on the $\pi_{0.5}$ backbone. See our paper for details and analysis.
@@ -199,7 +222,7 @@ Running `eval.sh` automatically starts two tmux windows: one for the policy serv
 
 
 ### Manual evaluation (per model)
-Details are provided in [here](manual_evaluation)
+Details are provided in [here](manual_evaluation.md)
 
 
 

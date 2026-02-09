@@ -1,8 +1,11 @@
 # More usage of Swift, please refer to https://swift.readthedocs.io/en/latest/BestPractices/Qwen3-VL-Best-Practice.html
 
 
+# Choose the dataset path from the following list, and change the OUTPUT_DIR accordingly:
 # data/vlm_subgoal_prediction_data/qwenvl/simple_subgoal_train.jsonl
+# data/vlm_subgoal_prediction_data/qwenvl/grounded_subgoal_train.jsonl
 # data/vlm_subgoal_prediction_data/memer/grounded_subgoal_train.jsonl
+
 DATASET_PATH='data/vlm_subgoal_prediction_data/qwenvl/simple_subgoal_train.jsonl'
 OUTPUT_DIR='runs/ckpts/vlm_subgoal_predictor/qwenvl_simple_subgoal'
 
@@ -13,7 +16,7 @@ FPS_MAX_FRAMES=10 \
 NPROC_PER_NODE=4 \
 CUDA_VISIBLE_DEVICES=0,1,2,3 \
 swift sft \
-    --model 'Qwen/Qwen3-VL-4B-Instruct' \
+    --model 'runs/ckpts/vlm_subgoal_predictor/Qwen3-VL-4B-Instruct' \
     --dataset $DATASET_PATH \
     --split_dataset_ratio 0.0 \
     --load_from_cache_file true \

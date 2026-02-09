@@ -14,7 +14,7 @@ from historybench.env_record_wrapper import DemonstrationWrapper
 from historybench.HistoryBench_env import *
 
 
-def replay(dirpath: str = "data/raw/robomme"):   
+def replay(dirpath: str = "data/robomme_h5_data"):   
     for file in os.listdir(dirpath):
         if not file.endswith(".h5"):
             continue
