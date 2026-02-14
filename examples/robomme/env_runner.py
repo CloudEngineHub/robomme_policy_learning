@@ -26,7 +26,7 @@ class EnvRunner:
     expose initial observation and step API, and optional subgoal oracles.
     """
 
-    def __init__(self, env_id: str, video_save_dir: str, max_steps: int = 1000) -> None:
+    def __init__(self, env_id: str, video_save_dir: str, max_steps: int = 1300) -> None:
         if env_id not in TASK_NAME_LIST:
             raise ValueError(f"Environment ID {env_id} not in {TASK_NAME_LIST}")
         self.env_id = env_id
@@ -59,6 +59,7 @@ class EnvRunner:
     def get_init_obs(self) -> dict[str, Any]:
         """Reset env and return initial observation dict (images, wrist_images, states, task_goal)."""
         obs, self.info = self.env.reset()
+        self.step_count = 0
         self.task_goal = self.info["language_goal"][0]
 
         images = [f.cpu().numpy() for f in obs["front_camera"]]

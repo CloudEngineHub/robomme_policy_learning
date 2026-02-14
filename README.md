@@ -21,13 +21,11 @@
   - [Manual evaluation (per model)](#manual-evaluation-per-model)
 - [TroubleShooting](#troubleshooting)
 - [Ackowledgement](#ackowledgement)
-- [Bibtext](#bibtext)
+- [Citation](#citation)
 
 ## Updates
 
 - [02/2026] We release MME-VLA Suite, a family of memory-augmented vision-language-action (VLA) models based on the $\pi_{0.5}$ backbone. See our paper for details and analysis.
-
-
 
 
 ## Installation
@@ -178,6 +176,8 @@ This produces the following under `runs`:
 │           └── norm_stats.json
 ```
 
+You can also compare with our computed `norm_stats.json` provided [here](assets/norm_stats.json) to check if you process correctly. Small difference should be acceptable.
+
 ### Train π₀.₅ baseline
 This variant uses no history and fine-tunes the $\pi_{0.5}$ checkpoints with the vision encoder frozen (for comparison with MME-VLA):
 ```
@@ -217,7 +217,7 @@ Running `eval.sh` automatically starts two tmux windows: one for the policy serv
 
 
 ### Manual evaluation (per model)
-Details are provided in [here](manual_evaluation.md)
+Details are provided in [here](docs/manual_evaluation.md)
 
 
 
@@ -234,7 +234,7 @@ os.environ['MUJOCO_GL'] = 'osmesa'
 This work was supported in part by NSF SES-2128623, NSF CAREER #2337870, NSF NRI #2220876, NSF NAIRR250085. We would also like to thank the wondeful [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main) codebase from Physical-Intelligence.
 
 
-## Bibtex
+## Citation
 
 ```
 ...
