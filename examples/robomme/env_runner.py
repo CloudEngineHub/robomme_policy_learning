@@ -37,9 +37,8 @@ class EnvRunner:
             dataset="test",
             action_space="joint_angle",
             gui_render=False,
+            max_steps=max_steps,
         )
-        self.max_steps = max_steps
-        self.step_count = 0
 
         # Set after make_env()
         self.env: Any = None
@@ -59,7 +58,6 @@ class EnvRunner:
     def get_init_obs(self) -> dict[str, Any]:
         """Reset env and return initial observation dict (images, wrist_images, states, task_goal)."""
         obs, self.info = self.env.reset()
-        self.step_count = 0
         self.task_goal = self.info["language_goal"][0]
 
         images = [f.cpu().numpy() for f in obs["front_camera"]]
@@ -88,7 +86,7 @@ class EnvRunner:
         stop = False
         success_flag = "unknown"
 
-        if truncated[-1] or self.step_count >= self.max_steps:
+        if truncated[-1]:
             stop = True
             success_flag = "timeout"
         elif terminated[-1]:
@@ -98,7 +96,6 @@ class EnvRunner:
             elif self.info.get("fail", False)[-1][-1]:
                 success_flag = "fail"
         
-        self.step_count += 1
         return (img, wrist_img, state), stop, success_flag
 
     def close_env(self) -> None:

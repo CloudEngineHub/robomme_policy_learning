@@ -34,7 +34,7 @@ class Args:
     port: int = 8011
 
     obs_horizon: int = 16
-    max_steps: int = 1300 # fix this
+    max_steps: int = 1300
     save_dir: str = "runs/evaluation"
     overwrite: bool = False
 
