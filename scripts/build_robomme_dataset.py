@@ -1,180 +1,187 @@
-"""Dataset preprocessing script for MME-VLA-Suite.
+"""Preprocess raw HDF5 RoboMME data into training-ready format.
 
-This module handles the conversion of raw HDF5 dataset files into preprocessed
-formats suitable for training, including feature extraction and memory buffer management.
+Converts episodes to features, token-drop indices, and per-step pickle samples.
 """
 
-import os
-import shutil
+from __future__ import annotations
+
+import argparse
 import json
-import h5py
-import numpy as np
 import logging
+import os
 import pickle
-from typing import Any, Callable, Optional
+import shutil
+import time
 
-from mme_vla_suite.shared.mem_buffer import MemoryBuffer
+import cv2
+import h5py
+import imageio
+import numpy as np
 
+from mme_vla_suite.shared.mem_buffer import MemoryBuffer, create_dict
 
 logger = logging.getLogger(__name__)
 
+# Action and state
+ACTION_CHUNK_HORIZON = 20
+JOINT_STATE_DIM = 8
 
-def get_data(
-    episode_dataset: h5py.Group,
-    idx: int,
-    field_name: str,
-    lambda_fn: Callable,
-    dtype: Optional[type] = None,
-) -> Any:
-    """Extract and process data from an episode dataset at a specific timestep.
+# Token-dropping visualization (8x8 spatial grid, 32x32 patches)
+NUM_SPATIAL_TOKENS = 64
+SPATIAL_GRID_SIZE = 8
+PATCH_HALF = 16
+DROPPED_TOKEN_ALPHA = 0.3
 
-    Args:
-        episode_dataset: HDF5 group containing episode data.
-        idx: Timestep index.
-        field_name: Name of the field to extract.
-        lambda_fn: Function to apply to the extracted data.
-        dtype: Optional data type for conversion. If str, decodes bytes.
-
-    Returns:
-        Processed data after applying lambda_fn.
-    """
-    timestep_group = episode_dataset[f"record_timestep_{idx}"]
-    data = timestep_group[field_name][()]
-    if dtype is str:
-        data = data.decode()
-    elif dtype is not None:
-        data = np.asarray(data, dtype=dtype)
-    return lambda_fn(data)
+# Frame-sampling visualization
+FRAME_SAMPLE_COUNT = 32
+VIS_FPS_ORIGINAL = 30
+VIS_FPS_SAMPLED = 2
+VIS_FPS_TOKENDROP = 10
 
 
-def get_state(episode_dataset: h5py.Group, idx: int) -> np.ndarray:
-    """Extract state vector from episode dataset.
-
-    Args:
-        episode_dataset: HDF5 group containing episode data.
-        idx: Timestep index.
-
-    Returns:
-        State vector of length 8 (padded if necessary for RouteStick & DrawPattern tasks).
-    """
-    state = get_data(episode_dataset, idx, "state", lambda x: x[0, :8], dtype=np.float32)
-    if len(state) == 8:
-        return state
-    else:
-        # Pad for RouteStick & DrawPattern tasks
-        return np.concatenate([state, np.array([0.0])], axis=0, dtype=np.float32)
-
-
-def get_action(episode_dataset: h5py.Group, idx: int) -> np.ndarray:
-    """Extract action vector from episode dataset.
-
-    Args:
-        episode_dataset: HDF5 group containing episode data.
-        idx: Timestep index.
-
-    Returns:
-        Action vector of length 8 (padded if necessary for RouteStick & DrawPattern tasks).
-    """
-    action = get_data(episode_dataset, idx, "action", lambda x: x, dtype=np.float32)
-    if len(action) == 8:
-        return action
-    else:
-        # Pad for RouteStick & DrawPattern tasks
-        return np.concatenate([action, np.array([-1.0])], axis=0, dtype=np.float32)
-
-
-def get_action_chunk(episode_dataset: h5py.Group, idx: int, horizon: int = 20) -> np.ndarray:
-    """Extract a chunk of consecutive actions starting from the given index.
-
-    Args:
-        episode_dataset: HDF5 group containing episode data.
-        idx: Starting timestep index.
-        horizon: Number of actions to extract.
-
-    Returns:
-        Stacked array of actions with shape (horizon, action_dim).
-    """
-    action_chunk = []
-    last_action = None
+def get_action_chunk(
+    data: h5py.Group, idx: int, horizon: int = ACTION_CHUNK_HORIZON
+) -> np.ndarray:
+    """Return (horizon, action_dim) chunk; pads with last valid action at end of episode."""
+    chunk: list[np.ndarray] = []
+    last_action: np.ndarray | None = None
     for i in range(horizon):
         try:
-            action = get_action(episode_dataset, idx + i)
-            action_chunk.append(action)
+            action = data[f"timestep_{idx + i}"]["action"]["joint_action"][()]
+            chunk.append(action)
             last_action = action
         except (KeyError, IndexError):
-            # Use last valid action if we run out of timesteps
-            action_chunk.append(last_action)
-    return np.stack(action_chunk, axis=0)
+            chunk.append(last_action)
+    return np.stack(chunk, axis=0)
 
 
-# For tasks using video-based observation at the initial step,
-# the conditioned video frames are considered as is_demo=True
-get_is_demo = lambda episode_dataset, idx: get_data(
-    episode_dataset, idx, "demonstration", lambda x: bool(x)
-)
-get_image = lambda episode_dataset, idx: get_data(
-    episode_dataset, idx, "image", lambda x: x, dtype=np.uint8
-)
-get_wrist_image = lambda episode_dataset, idx: get_data(
-    episode_dataset, idx, "wrist_image", lambda x: x, dtype=np.uint8
-)
-get_subgoal = lambda episode_dataset, idx: get_data(
-    episode_dataset, idx, "subgoal", lambda x: x.decode()
-)
-get_simple_subgoal = lambda episode_dataset, idx: get_data(
-    episode_dataset, idx, "simple_subgoal", lambda x: x, dtype=str
-)
-get_simple_subgoal_online = lambda episode_dataset, idx: get_data(
-    episode_dataset, idx, "simple_subgoal_online", lambda x: x, dtype=str
-)
-get_grounded_subgoal = lambda episode_dataset, idx: get_data(
-    episode_dataset, idx, "grounded_subgoal", lambda x: x, dtype=str
-)
-get_grounded_subgoal_online = lambda episode_dataset, idx: get_data(
-    episode_dataset, idx, "grounded_subgoal_online", lambda x: x, dtype=str
-)
+def _apply_dropped_token_overlay(
+    img: np.ndarray, kept_per_frame: dict[int, tuple], frame_idx: int
+) -> np.ndarray:
+    """Mask out dropped spatial tokens (white overlay) for one frame."""
+    mask = np.zeros(img.shape[:2], dtype=np.uint8)
+    for spatial_idx in range(NUM_SPATIAL_TOKENS):
+        if spatial_idx in kept_per_frame[frame_idx][0]:
+            continue
+        h_center = spatial_idx // SPATIAL_GRID_SIZE * (PATCH_HALF * 2) + PATCH_HALF
+        w_center = spatial_idx % SPATIAL_GRID_SIZE * (PATCH_HALF * 2) + PATCH_HALF
+        cv2.rectangle(
+            mask,
+            (w_center - PATCH_HALF, h_center - PATCH_HALF),
+            (w_center + PATCH_HALF, h_center + PATCH_HALF),
+            255,
+            -1,
+        )
+    out = img.copy()
+    out[mask == 255] = out[mask == 255] * DROPPED_TOKEN_ALPHA + np.array([255, 255, 255]) * (1 - DROPPED_TOKEN_ALPHA)
+    return out
 
+
+def visualize_token_dropping(
+    indices: list,
+    videos: list[np.ndarray],
+    output_dir: str,
+    exec_start_idx: int,
+    task_goal: str,
+) -> None:
+    """Write two MP4s: annotated (frame idx + demo border) and raw with token-drop overlay."""
+    kept_per_frame = create_dict(sorted(indices))
+    images_anno: list[np.ndarray] = []
+    images: list[np.ndarray] = []
+    for frame_idx in kept_per_frame:
+        img = videos[frame_idx].copy()
+        img_anno = cv2.putText(
+            img.copy(),
+            str(frame_idx),
+            (img.shape[1] // 2, img.shape[0] // 2),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 0, 255),
+            1,
+        )
+        img_anno = _apply_dropped_token_overlay(img_anno, kept_per_frame, frame_idx)
+        img_masked = _apply_dropped_token_overlay(img, kept_per_frame, frame_idx)
+        if frame_idx < exec_start_idx:
+            cv2.rectangle(
+                img_anno, (0, 0), (img_anno.shape[1], img_anno.shape[0]), (0, 0, 255), 4
+            )
+        images_anno.append(img_anno)
+        images.append(img_masked)
+
+    def _save(name: str, frames: list[np.ndarray]) -> None:
+        path = os.path.join(output_dir, f"{name}_{task_goal}.mp4")
+        imageio.mimsave(path, frames, fps=VIS_FPS_TOKENDROP)
+
+    _save("token_dropping_anno", images_anno)
+    _save("token_dropping", images)
+
+
+def visualize_frame_sampling(
+    videos: list[np.ndarray],
+    output_dir: str,
+    exec_start_idx: int,
+    task_goal: str,
+    keyframe_idxs: list[int],
+) -> None:
+    """Write original (demo border) and evenly sampled 8-frame MP4s."""
+    with_border: list[np.ndarray] = []
+    for i, img in enumerate(videos):
+        frame = img.copy()
+        if i < exec_start_idx:
+            cv2.rectangle(
+                frame, (0, 0), (frame.shape[1], frame.shape[0]), (255, 0, 0), 10
+            )
+        if i in keyframe_idxs:
+            cv2.rectangle(
+                frame, (0, 0), (frame.shape[1], frame.shape[0]), (0, 255, 0), 10
+            )
+        with_border.append(frame)
+        if i in keyframe_idxs:
+            for _ in range(3): # halt for a while to show the keyframe
+                with_border.append(frame)
+            
+
+    imageio.mimsave(
+        os.path.join(output_dir, f"original_video_{task_goal}.mp4"),
+        with_border,
+        fps=VIS_FPS_ORIGINAL,
+    )
+    indices = np.linspace(0, len(with_border) - 1, FRAME_SAMPLE_COUNT, dtype=np.int32)
+    sampled = [with_border[i] for i in indices]
+    imageio.mimsave(
+        os.path.join(output_dir, f"frame_sampling_{task_goal}.mp4"),
+        sampled,
+        fps=VIS_FPS_SAMPLED,
+    )
 
 
 class DatasetProcessor:
-    """Processes raw HDF5 datasets into preprocessed format for training.
+    """Converts raw HDF5 episodes to preprocessed features, token-drop indices, and execution samples."""
 
-    This class handles the conversion of raw episode data, including feature
-    extraction, memory buffer management, and saving preprocessed samples.
-    """
-
-    def __init__(self, raw_data_path: str = "data/raw", preprocessed_data_path: str = "data/preprocessed", execution_horizon: int = 16):
-        """Initialize the dataset processor.
-
-        Args:
-            repo_id: Repository identifier for the dataset.
-            execution_horizon: Horizon for execution steps (used for token dropping).
-        """
+    def __init__(
+        self,
+        raw_data_path: str = "data/raw",
+        preprocessed_data_path: str = "data/preprocessed",
+        execution_horizon: int = 16,
+        visualize: bool = False,
+    ) -> None:
         self.raw_data_path = raw_data_path
         self.dataset_path = preprocessed_data_path
+        self.execution_horizon = execution_horizon
+        self.visualize = visualize
 
-        # Remove existing preprocessed data if it exists
         if os.path.exists(self.dataset_path):
             shutil.rmtree(self.dataset_path)
         os.makedirs(self.dataset_path, exist_ok=True)
 
-        # Set up directory structure
         self.feature_path = os.path.join(self.dataset_path, "features")
         self.data_path = os.path.join(self.dataset_path, "data")
         self.meta_path = os.path.join(self.dataset_path, "meta")
-        os.makedirs(self.feature_path, exist_ok=True)
-        os.makedirs(self.data_path, exist_ok=True)
-        os.makedirs(self.meta_path, exist_ok=True)
+        for p in (self.feature_path, self.data_path, self.meta_path):
+            os.makedirs(p, exist_ok=True)
 
-        self.execution_horizon = execution_horizon
-
-
-    def run(self) -> None:
-        """Process all raw dataset files and generate preprocessed data.
-
-        Iterates through all HDF5 files in the raw data directory, processes
-        each episode, and saves preprocessed samples along with metadata.
-        """
+    def run(self, max_episodes_per_file: int | None = None) -> None:
+        """Process all .h5 files; optionally cap episodes per file (default: process all)."""
         global_episode_idx = 0
         mem_buffer = MemoryBuffer(
             num_views=1,
@@ -182,133 +189,114 @@ class DatasetProcessor:
             token_drop_stride=self.execution_horizon // 2,
             prepare_buffer=True,
         )
-        self.exec_sample_id = 0
-        self.total_sample_id = 0
+        exec_sample_id = 0
+        total_sample_id = 0
 
-        for file in os.listdir(self.raw_data_path):
-            if not file.endswith(".h5"):
+        for fname in os.listdir(self.raw_data_path):
+            if not fname.endswith(".h5"):
                 continue
-            logger.info(f"Processing file: {file}")
-            with h5py.File(os.path.join(self.raw_data_path, file), "r") as data:
-                for env_id in data.keys():
-                    env_dataset = data[env_id]
-                    episode_indices = sorted(
-                        int(k.split("_")[1])
-                        for k in env_dataset.keys()
-                        if k.startswith("episode_")
+            logger.info("Processing file: %s", fname)
+            path = os.path.join(self.raw_data_path, fname)
+            with h5py.File(path, "r") as data:
+                episode_indices = sorted(
+                    int(k.split("_")[1])
+                    for k in data.keys()
+                    if k.startswith("episode_")
+                )
+                if max_episodes_per_file is not None:
+                    episode_indices = episode_indices[:max_episodes_per_file]
+                for episode_idx in episode_indices:
+                    global_episode_idx, mem_buffer, exec_sample_id, total_sample_id = (
+                        self._process_episode(
+                            data, episode_idx, global_episode_idx,
+                            mem_buffer, exec_sample_id, total_sample_id,
+                        )
                     )
 
-                    for episode_idx in episode_indices:
-                        global_episode_idx, mem_buffer = (
-                            self.process_per_episode(
-                                env_dataset,
-                                episode_idx,
-                                global_episode_idx,
-                                mem_buffer,
-                            )
-                        )
-
-        # Save processing statistics
-        stats = {
-            "execution_samples": self.exec_sample_id,
-            "total_samples": self.total_sample_id,
-        }
+        stats = {"execution_samples": exec_sample_id, "total_samples": total_sample_id}
         with open(os.path.join(self.meta_path, "stats.json"), "w") as f:
             json.dump(stats, f, indent=2)
+
+    def _first_execution_step(self, episode_data: h5py.Group) -> int:
+        """Index of first timestep where is_video_demo is False."""
+        step = 0
+        while episode_data[f"timestep_{step}"]["info"]["is_video_demo"][()]:
+            step += 1
+        return step
+
+    @staticmethod
+    def _resolve_subgoal(
+        raw: str, last: str | None, sentinel: str = "complete"
+    ) -> str:
+        """Use last valid subgoal when current is sentinel (e.g. 'complete')."""
+        return last if last is not None and sentinel in raw else raw
     
-    
-    def process_per_episode(
+    def _remove_redundant_keyframes(self, keyframe_idxs: list[int], exec_start_idx: int, threshold: int = 10) -> list[int]:
+        # check if some keyframe indexs are too close (within 10 steps), if so, use the last one
+        exec_keyframe_idxs = [i for i in keyframe_idxs if i >= exec_start_idx] # only consider execution steps
+        new_keyframe_idxs = []
+        for i in range(len(exec_keyframe_idxs)):
+            if i == 0:
+                new_keyframe_idxs.append(exec_keyframe_idxs[i])
+            else:
+                if abs(new_keyframe_idxs[-1] - exec_keyframe_idxs[i]) <= threshold:
+                    new_keyframe_idxs[-1] = exec_keyframe_idxs[i]
+                else:
+                    new_keyframe_idxs.append(exec_keyframe_idxs[i])
+        return sorted(new_keyframe_idxs)
+
+    def _process_episode(
         self,
-        env_dataset: h5py.Group,
+        data: h5py.File,
         episode_idx: int,
         global_episode_idx: int,
         mem_buffer: MemoryBuffer,
-    ) -> tuple[int, MemoryBuffer]:
-        """Process a single episode and extract all necessary data.
+        exec_sample_id: int,
+        total_sample_id: int,
+    ) -> tuple[int, MemoryBuffer, int, int]:
+        episode_data = data[f"episode_{episode_idx}"]
+        task_goal = episode_data["setup"]["task_goal"][()].decode()
+        num_timesteps = sum(1 for k in episode_data.keys() if k.startswith("timestep_"))
+        exec_start_idx = self._first_execution_step(episode_data)
 
-        Args:
-            env_dataset: HDF5 group containing environment data.
-            episode_idx: Index of the episode within the environment.
-            global_episode_idx: Global episode index across all environments.
-            mem_buffer: Memory buffer for storing history features.
+        last_simple = last_grounded = last_simple_online = last_grounded_online = None
+        visualization_videos: list[np.ndarray] = []
+        record_videos: list[np.ndarray] = []
+        keyframe_idxs: list[int] = []
 
-        Returns:
-            Tuple of (updated_global_episode_idx, mem_buffer).
-        """
-        episode_dataset = env_dataset[f"episode_{episode_idx}"]
-        task_goal = episode_dataset["setup"]["language goal"][()].decode()
-
-        timestep_indices = sorted(
-            int(k.split("_")[-1])
-            for k in episode_dataset.keys()
-            if k.startswith("record_timestep_")
-        )
-        total_indices = list(range(len(timestep_indices)))
-
-        # Find the first non-demonstration timestep (execution start)
-        idx = 0
-        while get_is_demo(episode_dataset, idx):
-            idx += 1
-        exec_start_idx = idx
-
-        # Track last subgoals to handle "complete" markers
-        last_simple_subgoal = None
-        last_grounded_subgoal = None
-        last_simple_subgoal_online = None
-        last_grounded_subgoal_online = None
-
-        # Create episode feature directory
-        episode_feature_dir = os.path.join(
-            self.feature_path, f"episode_{global_episode_idx}"
-        )
+        episode_feature_dir = os.path.join(self.feature_path, f"episode_{global_episode_idx}")
         os.makedirs(episode_feature_dir, exist_ok=True)
 
-        # Process each timestep
-        for step_idx, idx in enumerate(total_indices):
-            # Extract data for current timestep
-            action_chunk = get_action_chunk(episode_dataset, idx, horizon=20)
-            state = get_state(episode_dataset, idx)
-            image = get_image(episode_dataset, idx)
-            wrist_image = get_wrist_image(episode_dataset, idx)
-            is_demo = get_is_demo(episode_dataset, idx)
-            simple_subgoal = get_simple_subgoal(episode_dataset, idx)
-            grounded_subgoal = get_grounded_subgoal(episode_dataset, idx)
+        for step_idx in range(num_timesteps):
+            ts = episode_data[f"timestep_{step_idx}"]
+            action_chunk = get_action_chunk(episode_data, step_idx, horizon=ACTION_CHUNK_HORIZON)
+            state = ts["obs"]["joint_state"][()][0, :JOINT_STATE_DIM]
+            image = ts["obs"]["front_camera_rgb"][()]
+            wrist_image = ts["obs"]["wrist_camera_rgb"][()]
+            is_video_demo = step_idx < exec_start_idx
+            assert ts["info"]["is_video_demo"][()] == is_video_demo, "is_video_demo mismatch"
 
-            # Extract online subgoals for temporal shift robustness
-            # During online evaluation, subtask success criteria may differ from
-            # waypoint-based dataset generation, causing online subgoals to complete
-            # earlier than standard subgoals. We include both versions to make the
-            # model robust to temporal shifts.
-            simple_subgoal_online = get_simple_subgoal_online(episode_dataset, idx)
-            grounded_subgoal_online = get_grounded_subgoal_online(episode_dataset, idx)
+            simple_subgoal = ts["info"]["simple_subgoal"][()].decode()
+            grounded_subgoal = ts["info"]["grounded_subgoal"][()].decode()
+            simple_subgoal_online = ts["info"]["simple_subgoal_online"][()].decode()
+            grounded_subgoal_online = ts["info"]["grounded_subgoal_online"][()].decode()
 
-            # Replace "complete" markers with the last valid subgoal
-            if "complete" in simple_subgoal:
-                simple_subgoal = last_simple_subgoal
-            if "complete" in grounded_subgoal:
-                grounded_subgoal = last_grounded_subgoal
-            if "complete" in simple_subgoal_online:
-                simple_subgoal_online = last_simple_subgoal_online
-            if "complete" in grounded_subgoal_online:
-                grounded_subgoal_online = last_grounded_subgoal_online
+            simple_subgoal = self._resolve_subgoal(simple_subgoal, last_simple)
+            grounded_subgoal = self._resolve_subgoal(grounded_subgoal, last_grounded)
+            simple_subgoal_online = self._resolve_subgoal(simple_subgoal_online, last_simple_online)
+            grounded_subgoal_online = self._resolve_subgoal(grounded_subgoal_online, last_grounded_online)
+            last_simple, last_grounded = simple_subgoal, grounded_subgoal
+            last_simple_online, last_grounded_online = simple_subgoal_online, grounded_subgoal_online
+            
+            if ts["info"]["is_keyframe"][()]:
+                keyframe_idxs.append(step_idx)
 
-            # Validate timestep consistency
-            if is_demo:
-                assert step_idx < exec_start_idx, (
-                    f"step_idx {step_idx} should be < exec_start_idx {exec_start_idx}"
-                )
-            else:
-                assert step_idx >= exec_start_idx, (
-                    f"step_idx {step_idx} should be >= exec_start_idx {exec_start_idx}"
-                )
-
-            # Compile frame data dictionary
             frame_dict = {
                 "image": image,
                 "wrist_image": wrist_image,
                 "state": state,
                 "actions": action_chunk,
-                "is_demo": np.array([is_demo], dtype=np.bool_),
+                "is_demo": np.array([is_video_demo], dtype=np.bool_),
                 "exec_start_idx": np.array([exec_start_idx], dtype=np.int32),
                 "step_idx": np.array([step_idx], dtype=np.int32),
                 "epis_idx": np.array([global_episode_idx], dtype=np.int32),
@@ -319,78 +307,58 @@ class DatasetProcessor:
                 "grounded_subgoal_online": grounded_subgoal_online.lower(),
             }
 
-            # Update last subgoals for next iteration
-            last_simple_subgoal = simple_subgoal
-            last_grounded_subgoal = grounded_subgoal
-            last_simple_subgoal_online = simple_subgoal_online
-            last_grounded_subgoal_online = grounded_subgoal_online
-
-            # Add to memory buffer and save features
             mem_buffer.add_buffer(image[None, None, ...], state[None, ...], [step_idx])
-            feature_path = os.path.join(
-                episode_feature_dir, f"token_emb_{step_idx}.npy"
-            )
-            # with open(feature_path, "wb") as f:
-            #     np.save(f, mem_buffer.get_history_feats(step_idx))
+            feat_path = os.path.join(episode_feature_dir, f"token_emb_{step_idx}.npy")
+            np.save(feat_path, mem_buffer.get_history_feats(step_idx))
 
-            # Save execution samples (non-demo timesteps)
-            if not is_demo:
-                filename = os.path.join(self.data_path, f"{self.exec_sample_id}.pkl")
-                assert not os.path.exists(filename), f"File already exists: {filename}"
-                with open(filename, "wb") as f:
+            if not is_video_demo:
+                pkl_path = os.path.join(self.data_path, f"{exec_sample_id}.pkl")
+                assert not os.path.exists(pkl_path), f"Collision: {pkl_path}"
+                with open(pkl_path, "wb") as f:
                     pickle.dump(frame_dict, f)
-                self.exec_sample_id += 1
-            self.total_sample_id += 1
+                exec_sample_id += 1
+            total_sample_id += 1
 
-        # Save token dropping indices for this episode
+            visualization_videos.append(image.copy())
+            record_videos.append(np.concatenate([image, wrist_image], axis=1))
+
         kept_indices = mem_buffer.get_token_dropping_indices()
-        kept_indices_path = os.path.join(episode_feature_dir, "kept_indices.json")
-        with open(kept_indices_path, "w") as f:
+        with open(os.path.join(episode_feature_dir, "kept_indices.json"), "w") as f:
             json.dump(kept_indices, f)
 
+        if self.visualize:
+            keyframe_idxs = self._remove_redundant_keyframes(keyframe_idxs, exec_start_idx)
+            visualize_frame_sampling(record_videos, episode_feature_dir, exec_start_idx, task_goal, keyframe_idxs)
+            visualize_token_dropping(kept_indices, visualization_videos, episode_feature_dir, exec_start_idx, task_goal)
+
         mem_buffer.clear()
-
         logger.info(
-            f"Episode {global_episode_idx} processed: "
-            f"total_timesteps={len(total_indices)}, "
-            f"exec_start_idx={exec_start_idx}, "
-            f"kept_indices={len(kept_indices)}, "
-            f"task_goal='{task_goal}'"
+            "Episode %s: timesteps=%s, exec_start=%s, kept_indices=%s, task_goal='%s'",
+            global_episode_idx, num_timesteps, exec_start_idx, len(kept_indices), task_goal,
         )
+        return global_episode_idx + 1, mem_buffer, exec_sample_id, total_sample_id
 
-        return global_episode_idx + 1, mem_buffer
 
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Preprocess raw HDF5 dataset for training")
+    parser.add_argument("--raw_data_path", type=str, default="data/robomme_h5_data", help="Raw HDF5 directory")
+    parser.add_argument("--preprocessed_data_path", type=str, default="data/robomme_preprocessed_data", help="Output directory")
+    parser.add_argument("--max_episodes_per_file", type=int, default=None, help="Cap episodes per file (default: all)")
+    parser.add_argument("--visualize", action="store_true", help="Write visualization MP4s")
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description="Preprocess raw HDF5 dataset files for training"
-    )
-    parser.add_argument(
-        "--raw_data_path",
-        type=str,
-        default="data/raw",
-        help="Path to the raw data",
-    )
-    parser.add_argument(
-        "--preprocessed_data_path",
-        type=str,
-        default="data/preprocessed",
-        help="Path to the dataset",
-    )
-    args = parser.parse_args()
-
-    # Configure logging
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-
-    import time
-    start_time = time.time()
-    preprocessor = DatasetProcessor(raw_data_path=args.raw_data_path, preprocessed_data_path=args.preprocessed_data_path)
-    preprocessor.run()
-    end_time = time.time()
-    logger.info(f"Time taken: {(end_time - start_time) / 60} minutes")
+    args = _parse_args()
+    t0 = time.perf_counter()
+    processor = DatasetProcessor(
+        raw_data_path=args.raw_data_path,
+        preprocessed_data_path=args.preprocessed_data_path,
+        visualize=args.visualize,
+    )
+    processor.run(max_episodes_per_file=args.max_episodes_per_file)
+    logger.info("Time taken: %.2f minutes", (time.perf_counter() - t0) / 60)

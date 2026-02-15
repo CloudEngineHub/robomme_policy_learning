@@ -159,10 +159,10 @@ Prepare training data by either downloading [preprocessed files](https://hugging
 uv run scripts/build_robomme_dataset.py --raw_data_path="data/robomme_h5_data" --preprocessed_data_path="data/robomme_preprocessed_data"
 ```
 
-Then compute normalization statistics (takes about 30 minutes):
+Then compute normalization statistics (takes about 10 minutes):
 ```
-uv run compute_norm_stats.py --config-name mme_vla_suite --repo-id robomme --dataset-path="data/robomme_preprocessed_data"
-uv run compute_norm_stats.py --config-name pi05_baseline --repo-id robomme --dataset-path="data/robomme_preprocessed_data"
+uv run scripts/compute_norm_stats.py --config-name mme_vla_suite --repo-id robomme --dataset-path="data/robomme_preprocessed_data"
+uv run scripts/compute_norm_stats.py --config-name pi05_baseline --repo-id robomme --dataset-path="data/robomme_preprocessed_data"
 ```
 This produces the following under `runs`:
 ```
@@ -192,7 +192,7 @@ bash scripts/finetune_mme_vla_suite.sh
 Set `MME_VLA_TYPE` to train a specific model variant.
 
 ### Train VLM subgoal predictor
-Download the VLM subgoal prediction [data](https://huggingface.co/datasets/Yinpei/vlm_subgoal_prediction_data), or generate it with `uv run scripts/build_vlm_subgoal_dataset.py` and `uv run scripts/build_vlm_subgoal_dataset_memer.py`.
+Download the VLM subgoal prediction [data](https://huggingface.co/datasets/Yinpei/vlm_subgoal_prediction_data), or generate it with `uv run scripts/build_vlm_subgoal_dataset_qwenvl.py` and `uv run scripts/build_vlm_subgoal_dataset_memer.py`.
 
 ```
 bash scripts/finetune_vlm_subgoal_predictor.sh
@@ -208,10 +208,10 @@ After downloading the fine-tuned checkpoints, run:
 bash scripts/eval.sh
 ```
 Set the `MODEL_TYPE` variable to one of the following:
-1. **Prior methods (2):** `pi05_baseline`, `MemER`
-2. **Symbolic MME-VLA (6):** `symbolic_simpleSG_oracle`, `symbolic_simpleSG_gemini`, `symbolic_simpleSG_qwenvl`, `symbolic_groundedSG_oracle`, `symbolic_groundedSG_gemini`, `symbolic_groundedSG_qwenvl`
-3. **Perceptual MME-VLA (6):** `perceptual-framesamp-context`, `perceptual-framesamp-modul`, `perceptual-framesamp-expert`, `perceptual-tokendrop-context`, `perceptual-tokendrop-modul`, `perceptual-tokendrop-expert`
-4. **Recurrent MME-VLA (6):** `recurrent-rmt-context`, `recurrent-rmt-modul`, `recurrent-rmt-expert`, `recurrent-ttt-context`, `recurrent-ttt-modul`, `recurrent-ttt-expert`
+1. **Prior methods:** `pi05_baseline`, `MemER`
+2. **Symbolic MME-VLA:** `symbolic_simpleSG_oracle`, `symbolic_simpleSG_gemini`, `symbolic_simpleSG_qwenvl`, `symbolic_groundedSG_oracle`, `symbolic_groundedSG_gemini`, `symbolic_groundedSG_qwenvl`
+3. **Perceptual MME-VLA:** `perceptual-framesamp-context`, `perceptual-framesamp-modul`, `perceptual-framesamp-expert`, `perceptual-tokendrop-context`, `perceptual-tokendrop-modul`, `perceptual-tokendrop-expert`
+4. **Recurrent MME-VLA:** `recurrent-rmt-context`, `recurrent-rmt-modul`, `recurrent-rmt-expert`, `recurrent-ttt-context`, `recurrent-ttt-modul`, `recurrent-ttt-expert`
 
 Running `eval.sh` automatically starts two tmux windows: one for the policy server and one for RoboMME evaluation. If the evaluation is interrupt, you can re run the script it will automaticaly resume from the genereated `progress.json`.
 
