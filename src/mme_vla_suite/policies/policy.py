@@ -57,7 +57,7 @@ class MME_VLA_Policy:
                 img_emb_dim=self.config.memory_feature.img.input_dim,
                 pos_emb_dim=self.config.memory_feature.pos.input_dim,
                 state_emb_dim=self.config.memory_feature.state.input_dim,
-                input_horizon=self.config.streaming_obs_horizon,
+                input_obs_horizon=self.config.streaming_obs_horizon,
                 max_recur_steps=self.config.recurrent_memory.max_recur_steps,
                 max_video_steps=self.config.recurrent_memory.max_pretraj_steps,
                 prepare_buffer=True, vision_enc_fn=self._vision_encode,
