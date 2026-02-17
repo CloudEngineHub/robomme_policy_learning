@@ -84,21 +84,23 @@ mkdir data && cd data
 
 Download the raw RoboMME training files [here](https://huggingface.co/datasets/Yinpei/robomme_h5_data):
 ```
-git clone git@hf.co:datasets/Yinpei/robomme_h5_data
+git clone git@hf.co:datasets/Yinpei/robomme_h5_data data/robomme_h5_data
 ```
 
 **(Optional)** Download preprocessed RoboMME data [here](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data):
 ```
-git clone git@hf.co:datasets/Yinpei/robomme_preprocessed_data
+git clone git@hf.co:datasets/Yinpei/robomme_preprocessed_data data/robomme_preprocessed_data
 ```
+and run `uv run scripts/unzip_data.py data/robomme_preprocessed_data` to unzip the files.  
 Alternatively, run `uv run scripts/build_robomme_dataset.py` to generate the preprocessed data (takes about 2–3 hours).
 
 
 **(Optional)** Download VLM subgoal prediction training data [here](https://huggingface.co/datasets/Yinpei/vlm_subgoal_prediction_data):
 ```
-git clone git@hf.co:datasets/Yinpei/vlm_subgoal_prediction_data
+git clone git@hf.co:datasets/Yinpei/vlm_subgoal_prediction_data data/vlm_subgoal_prediction_data
 ```
-Alternatively, run `uv run scripts/build_vlm_subgoal_dataset.py` and `uv run scripts/build_vlm_subgoal_dataset_memer.py` to generate them (takes about 30 minutes).
+and run `uv run scripts/unzip_data.py data/vlm_subgoal_prediction_data` to unzip the files.  
+Alternatively, run `uv run scripts/build_vlm_subgoal_dataset_qwenvl.py` and `uv run scripts/build_vlm_subgoal_dataset_memer.py` to generate them (takes about 30 minutes).
 
 
 
@@ -140,6 +142,12 @@ Download the fine-tuned $\pi_{0.5}$ baseline [here](https://huggingface.co/Yinpe
 ```
 git clone git@hf.co:Yinpei/pi05_baseline runs/ckpts/pi05_baseline
 ```
+
+After downloading fine-tuned checkpoints, you can run 
+```
+uv run ./scripts/unzip_ckpt.py runs/ckpts
+```
+to unzip all of them.
 
 
 ## Model Training
