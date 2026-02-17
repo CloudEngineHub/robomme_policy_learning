@@ -16,12 +16,34 @@
 
 # set the MODEL_TYPE from the list above according to your needs
 
+#### set your own parameters ####
 MODEL_TYPE="perceptual-framesamp-modul"
-SEED=7
-PORT=8001
-CKPT_ID=79999
-GPU_ID_server=1
-GPU_ID_client=0
+SEED=7          # model seed for evaluation (default: 7)
+CKPT_ID=79999   # ckpt id for evaluation (default: 79999)
+GPU_ID_server=0 # gpu id for server (default: 1), when set this, the VLA policy server will be run on this gpu
+GPU_ID_client=0 # gpu id for client (default: 0), when set this, the RoboMME and VLM subgoal predictor will be run on this gpu
+#--------------------------------#
+
+
+
+find_free_port() {
+  local min=${1:-2000}
+  local max=${2:-30000}
+  local port
+  local tries=5000  # max tries to find a free port
+
+  for ((i=0; i<tries; i++)); do
+    port=$(shuf -i"${min}"-"${max}" -n1)
+    if ! lsof -iTCP:"${port}" -sTCP:LISTEN &>/dev/null; then
+      echo "${port}"
+      return 0
+    fi
+  done
+
+  echo "ERROR: not found free port in range ${min}-${max}" >&2
+  return 1
+}
+PORT=$(find_free_port)
 
 
 if [ "$MODEL_TYPE" == "pi05_baseline" ]; then
