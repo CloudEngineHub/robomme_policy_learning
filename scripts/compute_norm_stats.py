@@ -62,14 +62,11 @@ def main(config_name: str = "mme_vla_suite", repo_id: str = "robomme", dataset_p
     config = _config.get_config(config_name)
     config = dataclasses.replace(config, data=dataclasses.replace(config.data, repo_id=repo_id))
     data_config = config.data.create(config.assets_dirs, config.model)
-    
-    from mme_vla_suite.models.config.utils import get_history_config
-    history_config = get_history_config("perceptual-framesamp-modul.yaml")
-    
+        
     data_loader, num_batches = create_data_loader(
         dataset_path=dataset_path,
         data_config=data_config,
-        history_config=history_config,
+        history_config=None,
         action_horizon=config.model.action_horizon,
         batch_size=128,
         num_workers=4,

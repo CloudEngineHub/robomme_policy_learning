@@ -64,8 +64,9 @@ uv run scripts/serve_policy.py --seed=7  --port=8001 policy:checkpoint --policy.
 # terminal 1 
 micromamba activate robomme
 python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=symbolic-simple-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-oracle 
-### SimpleSG + QwenVL
 ```
+
+### SimpleSG + QwenVL
 # terminal 0
 uv run scripts/serve_policy.py --seed=7  --port=8001 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-simple-subgoal/79999 --policy.config=mme_vla_suite
 
@@ -91,8 +92,9 @@ uv run scripts/serve_policy.py --seed=7  --port=8001 policy:checkpoint --policy.
 # terminal 1 
 micromamba activate robomme
 python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=symbolic-grounded-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=grounded_subgoal --args.use-oracle 
-### GroundSG + QwenVL
 ```
+
+### GroundSG + QwenVL
 # terminal 0
 uv run scripts/serve_policy.py --seed=7  --port=8001 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-grounded-subgoal/79999 --policy.config=mme_vla_suite
 

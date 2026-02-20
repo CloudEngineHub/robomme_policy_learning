@@ -19,7 +19,6 @@ integration_type: modulation
 memory_token_dim: 1024
 representation_type: recurrent
 recurrent_memory:
-  budget: 512
   type: rmt
   hidden_dim: 512
   remat_n_mini_batches: 4

@@ -19,7 +19,6 @@ integration_type: context
 memory_token_dim: 2048
 representation_type: recurrent
 recurrent_memory:
-  budget: 512
   type: ttt
   hidden_dim: 512
   remat_n_mini_batches: 4

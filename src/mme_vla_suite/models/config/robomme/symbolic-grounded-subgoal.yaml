@@ -19,5 +19,4 @@ integration_type: context
 memory_token_dim: 2048
 representation_type: symbolic
 symbolic_memory:
-  budget: 512
   type: grounded_subgoal

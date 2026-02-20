@@ -19,5 +19,4 @@ integration_type: modulation
 memory_token_dim: 1024
 representation_type: perceptual
 perceptual_memory:
-  budget: 512
   type: token_dropping
