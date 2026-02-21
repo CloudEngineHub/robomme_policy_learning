@@ -38,9 +38,6 @@ micromamba activate robomme
 python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=pi05_baseline --args.model_ckpt_id=79999 --args.no-use-history
 ```
 
-You can change the `--policy.dir` to load different ckpts, change the  `seed` and `ckpt_id` to evaluate on different checkpoints and seeds, then gather results with `scripts/compute_results.py`.
-
-
 ## MemER
 MemER can be viewed as a combined use of symbolic and perceptual memory.
 
@@ -67,12 +64,15 @@ python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.poli
 ```
 
 ### SimpleSG + QwenVL
+```
 # terminal 0
 uv run scripts/serve_policy.py --seed=7  --port=8001 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-simple-subgoal/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
 python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=symbolic-simple-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-qwenvl 
+```
+
 ### SimpleSG + Gemini
 Set the `GOOGLE_API_KEY` environment variable when using Gemini.
 ```
@@ -95,12 +95,15 @@ python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.poli
 ```
 
 ### GroundSG + QwenVL
+```
 # terminal 0
 uv run scripts/serve_policy.py --seed=7  --port=8001 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-grounded-subgoal/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
 python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=symbolic-grounded-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=grounded_subgoal --args.use-qwenvl 
+```
+
 ### GroundSG + Gemini
 Set the `GOOGLE_API_KEY` environment variable when using Gemini.
 ```
@@ -245,3 +248,24 @@ python examples/robomme/eval.py --args.only_tasks="BinFill,PickXtimes" ...
 ```
 You can exclude or re-eval with `--args.exclude_tasks` and `--args.re_eval_tasks`
 Everything, you just rerun the `python examples/robomme/eval.py`, the evalution will automatically resume.
+
+
+For `scripts/serve_policy.py`, you can change the `--seed` and `--policy.dir` to evaluate on different checkpoints and seeds.
+For `examples/robomme/eval.py`, ` --args.policy_name`, `--args.model_seed`, `--args.model_ckpt_id=79999` are used for generateing saving directory names. For example, a eval structure can be
+```
+runs/evaluation/perceptual-framesamp-modul
+├── ckpt60000
+│   ├── seed0
+│   ├── seed42
+│   └── seed7
+├── ckpt70000
+│   ├── seed0
+│   ├── seed42
+│   └── seed7
+├── ckpt79999
+    ├── seed0
+    ├── seed42
+    └── seed7
+...
+```
+Then, you can gather results by running `uv run scripts/compute_results.py --model_dir perceptual-framesamp-modul --ckpt_list ckpt60000,ckpt70000,ckpt79999 --seed_list seed0,seed42,seed7`.
