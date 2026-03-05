@@ -52,7 +52,7 @@ We use separate environments for VLA training/inference and the RoboMME simulato
 ```
 .
 ├── data
-│   ├── robomme_h5_data                 # download robomme raw files here
+│   ├── robomme_h5_data                 # download robomme raw h5 files here
 │   └── robomme_preprocessed_data
 │   │   ├── data                        # pickle files
 │   │   ├── features                    # precompute sigclip token cache
@@ -94,9 +94,10 @@ git clone git@hf.co:datasets/Yinpei/robomme_data_h5 data/robomme_data_h5
 git clone git@hf.co:datasets/Yinpei/robomme_preprocessed_data data/robomme_preprocessed_data
 ```
 and run `uv run scripts/unzip_data.py data/robomme_preprocessed_data` to unzip the files.  
-Alternatively, run `uv run scripts/build_dataset.py` to generate the preprocessed pickle files  (takes about 2–3 hours) and VLM subgoal training jsonl data  (takes about 30 minutes).   
 
-We also provide data in LeRobot format [here](https://huggingface.co/datasets/Yinpei/robomme_data_lerobot). In our experiments, however, the LeRobot dataloader significantly increased CPU memory usage during training, which can be a bottleneck in shared training environments (e.g. on HPC). For this reason, we use our custom data format and dataloader in this repository. 
+Alternatively, you can run `uv run scripts/build_dataset.py` to generate the preprocessed pickle files  (takes about 2–3 hours) and/or VLM subgoal predictor training data  (takes about 30 minutes).   
+
+We also provide data in LeRobot format [here](https://huggingface.co/datasets/Yinpei/robomme_data_lerobot). In our experiments, however, the LeRobot dataloader significantly increased CPU memory usage during training, which can be a bottleneck in shared training environments (e.g. on HPC). For this reason, we use our custom data format and [dataloader](https://github.com/RoboMME/robomme_policy_learning/blob/89efeaab461cc2b00ede344edf4283692e9c3ada/src/mme_vla_suite/training/dataset.py#L42) in this repository. 
 
 
 ### Download Pre-trained Models

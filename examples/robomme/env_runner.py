@@ -96,11 +96,11 @@ class EnvRunner:
     
     @property
     def simple_subgoal_oracle(self) -> str:
-        return self.info["simple_subgoal_online"][-1]
+        return self.info["simple_subgoal_online"]
     
     @property
     def grounded_subgoal_oracle(self) -> str:
-        return self.info["grounded_subgoal_online"][-1]
+        return self.info["grounded_subgoal_online"]
     
     def close_env(self) -> None:
         """Close and clear the current env."""

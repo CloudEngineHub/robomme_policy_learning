@@ -60,7 +60,7 @@ uv run scripts/serve_policy.py --seed=7  --port=8003 policy:checkpoint --policy.
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=symbolic-simple-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-oracle 
+python examples/robomme/eval.py --args.model_seed=7 --args.port=8003 --args.policy_name=symbolic-simple-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-oracle 
 ```
 
 ### SimpleSG + QwenVL
@@ -70,7 +70,7 @@ uv run scripts/serve_policy.py --seed=7  --port=8004 policy:checkpoint --policy.
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=symbolic-simple-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-qwenvl 
+python examples/robomme/eval.py --args.model_seed=7 --args.port=8004 --args.policy_name=symbolic-simple-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-qwenvl 
 ```
 
 ### SimpleSG + Gemini
@@ -91,7 +91,7 @@ uv run scripts/serve_policy.py --seed=7  --port=8006 policy:checkpoint --policy.
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=symbolic-grounded-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=grounded_subgoal --args.use-oracle 
+python examples/robomme/eval.py --args.model_seed=7 --args.port=8006 --args.policy_name=symbolic-grounded-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=grounded_subgoal --args.use-oracle 
 ```
 
 ### GroundSG + QwenVL
@@ -101,7 +101,7 @@ uv run scripts/serve_policy.py --seed=7  --port=8007 policy:checkpoint --policy.
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=symbolic-grounded-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=grounded_subgoal --args.use-qwenvl 
+python examples/robomme/eval.py --args.model_seed=7 --args.port=8007 --args.policy_name=symbolic-grounded-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=grounded_subgoal --args.use-qwenvl 
 ```
 
 ### GroundSG + Gemini

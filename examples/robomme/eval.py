@@ -205,7 +205,6 @@ class EpisodeEvaluator:
         if subgoal is not None:
             element['simple_subgoal'] = subgoal
             element['grounded_subgoal'] = subgoal
-            print(f"Final Input {self.args.subgoal_type}: {subgoal}")
 
         action_chunk = client.infer(element)["actions"]
         return action_chunk[:exec_horizon]
