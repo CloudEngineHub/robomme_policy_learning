@@ -59,9 +59,8 @@ class EnvRunner:
             self.task_goal = self.info["task_goal"][0]
         else:
             self.task_goal = self.info["task_goal"]
-
-        images = [f.cpu().numpy() for f in obs["front_rgb_list"]] # TODO
-        wrist_images = [f.cpu().numpy() for f in obs["wrist_rgb_list"]]
+        images = [f for f in obs["front_rgb_list"]]
+        wrist_images = [f for f in obs["wrist_rgb_list"]]
         states = [pack_state(joint_state, gripper_state) for joint_state, gripper_state in 
                   zip(obs["joint_state_list"], obs["gripper_state_list"])]
 
@@ -84,8 +83,8 @@ class EnvRunner:
             print(f"Error: {e}")
             return (None, None, None), True, "error"
 
-        img = obs["front_rgb_list"][-1].cpu().numpy()
-        wrist_img = obs["wrist_rgb_list"][-1].cpu().numpy()
+        img = obs["front_rgb_list"][-1]
+        wrist_img = obs["wrist_rgb_list"][-1]
         joint_state = obs["joint_state_list"][-1]
         gripper_state = obs["gripper_state_list"][-1]
         state = pack_state(joint_state, gripper_state)

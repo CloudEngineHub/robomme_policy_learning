@@ -2,28 +2,30 @@
 Build VLM subgoal prediction dataset for MemER
 """
 
-import os
 import json
-import re
-import shutil
+import os
 
 import cv2
 import h5py
 import imageio
 import numpy as np
+import argparse
+
+from mme_vla_suite.dataset_builder.robomme_h5_utils import get_task_goal, get_timestep_indices
+from mme_vla_suite.dataset_builder.vlm_subgoal_dataset_base import BaseVLMSubgoalDatasetBuilder
 
 np.set_printoptions(precision=4, suppress=True)
 
 
 # -----------------------------------------------------------------------------
-# Keyframe detection
+# Keyframe detection (MemER-specific)
 # -----------------------------------------------------------------------------
 
 
 def find_local_minima(episode_data, timestep_indexs, threshold=0.001, min_distance=5):
     delta_actions = []
     for idx in timestep_indexs:
-        state = episode_data[f"timestep_{idx}"]["obs"]["joint_state"][()][0, :7]
+        state = episode_data[f"timestep_{idx}"]["obs"]["joint_state"][()]
         action = episode_data[f"timestep_{idx}"]["action"]["joint_action"][()][:7]
         delta_action = action - state
         delta_actions.append(np.linalg.norm(delta_action))
@@ -32,7 +34,7 @@ def find_local_minima(episode_data, timestep_indexs, threshold=0.001, min_distan
     minima_indices = []
     n = len(delta_actions)
 
-    for i in range(1, n - 1):  # Skip first and last points
+    for i in range(1, n - 1):
         if delta_actions[i] >= threshold:
             continue
         if delta_actions[i] >= delta_actions[i - 1] or delta_actions[i] >= delta_actions[i + 1]:
@@ -97,7 +99,7 @@ def put_wrapped_text(image, text, org, font, font_scale, color, thickness=1, lin
 
 
 # -----------------------------------------------------------------------------
-# Dataset builder
+# Prompts
 # -----------------------------------------------------------------------------
 
 SUBGOAL_SYSTEM_PROMPT = (
@@ -110,64 +112,28 @@ SUBGOAL_SYSTEM_PROMPT = (
 )
 
 
-class DatasetBuilder:
-    def __init__(
-        self,
-        data_dir: str = "data/vlm_subgoal_prediction_data/memer_sample_data",
-    ):
-        self.data_dir = data_dir
-        self.images_dir = os.path.join(self.data_dir, "images")
+# -----------------------------------------------------------------------------
+# Dataset builder
+# -----------------------------------------------------------------------------
 
-        if os.path.exists(self.images_dir):
-            shutil.rmtree(self.images_dir)
-        os.makedirs(self.images_dir, exist_ok=True)
 
-        self.simple_subgoal_train_data_path = os.path.join(
-            self.data_dir, "simple_subgoal_train.jsonl"
-        )
-        if os.path.exists(self.simple_subgoal_train_data_path):
-            os.remove(self.simple_subgoal_train_data_path)
-
-        self.grounded_subgoal_train_data_path = os.path.join(
-            self.data_dir, "grounded_subgoal_train.jsonl"
-        )
-        if os.path.exists(self.grounded_subgoal_train_data_path):
-            os.remove(self.grounded_subgoal_train_data_path)
-
-        self.history_simple_subgoals = []
-        self.history_grounded_subgoals = []
-        self.history_grounded_bboxes = []
+class DatasetBuilder(BaseVLMSubgoalDatasetBuilder):
+    def run(self) -> list:
+        results = super().run()
+        if results:
+            print(f"max_frame_len: {max(r or 0 for r in results)}")
+        return results
 
     # -------------------------------------------------------------------------
-    # High-level entry
+    # Prompt / text helpers (MemER-specific)
     # -------------------------------------------------------------------------
 
-    def run(self, h5_data_dir: str):
-        max_frame_len = 0
-        for file in os.listdir(h5_data_dir):
-            if not file.endswith(".h5"):
-                continue
-            print(f"\nprocessing file: {file}")
-            data = h5py.File(os.path.join(h5_data_dir, file), "r")
-            env_id = file.split(".")[0].split("_")[-1]
-            for episode_idx in range(100):
-                frame_len = self.process_per_episode(data, env_id, episode_idx)
-                max_frame_len = max(max_frame_len, frame_len)
-        print(f"max_frame_len: {max_frame_len}")
-
-    # -------------------------------------------------------------------------
-    # Prompt / text helpers
-    # -------------------------------------------------------------------------
-
-    def _wrap_history_subgoals(self, subgoals) -> str:
-        return "; ".join([f"{i+1}. {subgoal}" for i, subgoal in enumerate(subgoals)])
-
-    def _wrap_keyframes(self, key_frame_paths) -> str:
+    def _wrap_keyframes(self, key_frame_paths: list) -> str:
         return "; ".join(
             [f"Past Keyframe {i+1}: <image>" for i in range(len(key_frame_paths))]
         )
 
-    def _wrap_execution_frames(self, execution_frame_paths) -> str:
+    def _wrap_execution_frames(self, execution_frame_paths: list) -> str:
         return "; ".join(
             [
                 f"Executed Frame {i+1}: <image>"
@@ -175,7 +141,7 @@ class DatasetBuilder:
             ]
         )
 
-    def _wrap_images(self, image_paths) -> str:
+    def _wrap_images(self, image_paths: list) -> str:
         if len(image_paths) == 0:
             return "[]"
         return "[" + ", ".join(["<image>" for _ in image_paths]) + "]"
@@ -186,12 +152,12 @@ class DatasetBuilder:
 
     def make_simple_subgoal_data(
         self,
-        task_goal,
-        subgoal,
-        execution_frame_paths,
-        key_frame_paths,
-        video_path=None,
-        candidate_frame_idx=None,
+        task_goal: str,
+        subgoal: str,
+        execution_frame_paths: list,
+        key_frame_paths: list,
+        video_path: str | None = None,
+        candidate_frame_idx: int | None = None,
     ) -> dict:
         video_prefix = (
             "The task has a video input for initial setup: <video>\n" if video_path else ""
@@ -225,36 +191,14 @@ class DatasetBuilder:
     # Grounded subgoal data
     # -------------------------------------------------------------------------
 
-    def _preprocess_grounded_subgoal(self, subgoal) -> tuple:
-        # search the pattern "at <y, x>"
-        matches = re.findall(r"at <(\d+), (\d+)>", subgoal)
-        bbox = (
-            [[int(float(m[0])), int(float(m[1]))] for m in matches]
-            if matches
-            else []
-        )
-        subgoal = re.sub(r"at <(\d+), (\d+)>", "at <bbox>", subgoal)
-        return subgoal, bbox
-
-    def _add_noise_to_bbox(self, bbox) -> list:
-        y_noise = np.random.randint(-2, 2)
-        x_noise = np.random.randint(-2, 2)
-        return [
-            [
-                min(max(y + y_noise, 0), 255),
-                min(max(x + x_noise, 0), 255),
-            ]
-            for (y, x) in bbox
-        ]
-
     def make_grounded_subgoal_data(
         self,
-        task_goal,
-        subgoal,
-        execution_frame_paths,
-        key_frame_paths,
-        video_path=None,
-        candidate_frame_idx=None,
+        task_goal: str,
+        subgoal: str,
+        execution_frame_paths: list,
+        key_frame_paths: list,
+        video_path: str | None = None,
+        candidate_frame_idx: int | None = None,
     ) -> dict:
         video_prefix = (
             "The task has a video input for initial setup: <video>\n" if video_path else ""
@@ -290,25 +234,8 @@ class DatasetBuilder:
         return result
 
     # -------------------------------------------------------------------------
-    # Episode / keyframe helpers
+    # Visualization (MemER-specific)
     # -------------------------------------------------------------------------
-
-    def combine_image_and_wrist_image(
-        self, image, wrist_image, simple_subgoal
-    ) -> np.ndarray:
-        output = np.concatenate([image, wrist_image], axis=1)
-        output = cv2.putText(
-            output, simple_subgoal, (10, 10),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1
-        )
-        return output
-
-    def _first_execution_step(self, episode_data: h5py.Group) -> int:
-        """Index of first timestep where is_video_demo is False."""
-        step = 0
-        while episode_data[f"timestep_{step}"]["info"]["is_video_demo"][()]:
-            step += 1
-        return step
 
     def _build_visualization_frame(
         self,
@@ -371,24 +298,24 @@ class DatasetBuilder:
 
         return np.concatenate([top_image, middle_image, bottom_image], axis=0)
 
+    # -------------------------------------------------------------------------
+    # Episode processing
+    # -------------------------------------------------------------------------
+
     def process_per_episode(
         self,
         env_dataset: h5py.File,
         env_id: str,
         episode_idx: int,
-    ):
+    ) -> int:
         print(f"processing episode {episode_idx} of {env_id}...")
         self.history_simple_subgoals = []
         self.history_grounded_subgoals = []
         self.history_grounded_bboxes = []
 
         episode_data = env_dataset[f"episode_{episode_idx}"]
-        task_goal = episode_data["setup"]["task_goal"][()].decode().lower()
-        timestep_indexs = sorted(
-            int(k.split("_")[-1])
-            for k in episode_data.keys()
-            if k.startswith("timestep_")
-        )
+        task_goal = get_task_goal(episode_data, lower=True)
+        timestep_indexs = get_timestep_indices(episode_data)
         exec_start_idx = self._first_execution_step(episode_data)
 
         # Subgoal transition frame indices
@@ -428,7 +355,7 @@ class DatasetBuilder:
 
         if exec_start_idx > 0:
             video_frames = [
-                episode_data[f"timestep_{i}"]["obs"]["front_camera_rgb"][()]
+                episode_data[f"timestep_{i}"]["obs"]["front_rgb"][()]
                 for i in range(exec_start_idx)
             ]
             init_video_path = os.path.join(
@@ -440,11 +367,12 @@ class DatasetBuilder:
 
         last_simple_subgoal = None
         last_grounded_subgoal = None
-        save_images = []
-        visualization_video_path = os.path.join(
-            os.path.dirname(self.images_dir), "visualization"
-        )
-        os.makedirs(visualization_video_path, exist_ok=True)
+        if self.visualize:
+            save_images = []
+            visualization_video_path = os.path.join(
+                os.path.dirname(self.images_dir), "visualization"
+            )
+            os.makedirs(visualization_video_path, exist_ok=True)
 
         memory_frames = []
         execution_frames = []
@@ -460,7 +388,7 @@ class DatasetBuilder:
             if "complete" in grounded_subgoal:
                 grounded_subgoal = last_grounded_subgoal
 
-            image = episode_data[f"timestep_{idx}"]["obs"]["front_camera_rgb"][()]
+            image = episode_data[f"timestep_{idx}"]["obs"]["front_rgb"][()]
             image_path = os.path.join(
                 self.images_dir, f"{env_id}_ep{episode_idx}_step{idx}.png"
             )
@@ -489,13 +417,14 @@ class DatasetBuilder:
                 with open(self.grounded_subgoal_train_data_path, "a") as f:
                     f.write(json.dumps(grounded_subgoal_data) + "\n")
 
-                big_image = self._build_visualization_frame(
-                    grounded_subgoal_data,
-                    memory_frames,
-                    execution_frames,
-                    candidate_frame_idx,
-                )
-                save_images.append(big_image)
+                if self.visualize:
+                    big_image = self._build_visualization_frame(
+                        grounded_subgoal_data,
+                        memory_frames,
+                        execution_frames,
+                        candidate_frame_idx,
+                    )
+                    save_images.append(big_image)
 
                 if candidate_frame_idx is not None:
                     memory_frames.append(candidate_frame_image_path)
@@ -506,14 +435,30 @@ class DatasetBuilder:
             last_simple_subgoal = simple_subgoal
             last_grounded_subgoal = grounded_subgoal
 
-        out_path = os.path.join(
-            visualization_video_path,
-            f"{env_id}_ep{episode_idx}_save_images.mp4",
-        )
-        imageio.mimsave(out_path, save_images, fps=1)
+        if self.visualize:
+            out_path = os.path.join(
+                visualization_video_path,
+                f"{env_id}_ep{episode_idx}_save_images.mp4",
+            )
+            imageio.mimsave(out_path, save_images, fps=1)
         return max_frame_len
 
 
-if __name__ == "__main__":
-    builder = DatasetBuilder(data_dir="data/vlm_subgoal_prediction_data/memer")
-    builder.run(h5_data_dir="data/robomme_h5_data")
+# def _parse_args() -> argparse.Namespace:
+#     parser = argparse.ArgumentParser(description="Preprocess raw HDF5 dataset for training")
+#     parser.add_argument("--raw_data_path", type=str, default="data/robomme_h5_data", help="Raw HDF5 directory")
+#     parser.add_argument("--preprocessed_data_path", type=str, default="data/vlm_subgoal_prediction_data/memer", help="Output directory")
+#     parser.add_argument("--max_episodes", type=int, default=None, help="Cap episodes per file (default: all)")
+#     parser.add_argument("--visualize", action="store_true", help="Write visualization MP4s")
+#     return parser.parse_args()
+
+
+# if __name__ == "__main__":
+#     args = _parse_args()
+#     builder = DatasetBuilder(
+#         raw_data_path=args.raw_data_path,
+#         preprocessed_data_path=args.preprocessed_data_path,
+#         max_episodes=args.max_episodes,
+#         visualize=args.visualize,
+#     )
+#     builder.run()

@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import logging
 import os
 import pickle
 import shutil
@@ -20,7 +19,12 @@ import numpy as np
 
 from mme_vla_suite.shared.mem_buffer import MemoryBuffer, create_dict
 
-logger = logging.getLogger(__name__)
+from mme_vla_suite.dataset_builder.robomme_h5_utils import (
+    first_execution_step,
+    remove_redundant_keyframes,
+    resolve_subgoal,
+)
+
 
 # Action and state
 ACTION_CHUNK_HORIZON = 20
@@ -164,12 +168,13 @@ class DatasetProcessor:
         preprocessed_data_path: str = "data/preprocessed",
         execution_horizon: int = 16,
         visualize: bool = False,
+        max_episodes: int | None = None,
     ) -> None:
         self.raw_data_path = raw_data_path
         self.dataset_path = preprocessed_data_path
         self.execution_horizon = execution_horizon
         self.visualize = visualize
-
+        self.max_episodes = max_episodes
         if os.path.exists(self.dataset_path):
             shutil.rmtree(self.dataset_path)
         os.makedirs(self.dataset_path, exist_ok=True)
@@ -180,7 +185,7 @@ class DatasetProcessor:
         for p in (self.feature_path, self.data_path, self.meta_path):
             os.makedirs(p, exist_ok=True)
 
-    def run(self, max_episodes_per_file: int | None = None) -> None:
+    def run(self) -> None:
         """Process all .h5 files; optionally cap episodes per file (default: process all)."""
         global_episode_idx = 0
         mem_buffer = MemoryBuffer(
@@ -195,7 +200,7 @@ class DatasetProcessor:
         for fname in os.listdir(self.raw_data_path):
             if not fname.endswith(".h5"):
                 continue
-            print("Processing file: %s", fname)
+            print(f"Processing file: {fname}")
             path = os.path.join(self.raw_data_path, fname)
             with h5py.File(path, "r") as data:
                 episode_indices = sorted(
@@ -203,8 +208,8 @@ class DatasetProcessor:
                     for k in data.keys()
                     if k.startswith("episode_")
                 )
-                if max_episodes_per_file is not None:
-                    episode_indices = episode_indices[:max_episodes_per_file]
+                if self.max_episodes is not None:
+                    episode_indices = episode_indices[:self.max_episodes]
                 for episode_idx in episode_indices:
                     global_episode_idx, mem_buffer, exec_sample_id, total_sample_id = (
                         self._process_episode(
@@ -218,25 +223,12 @@ class DatasetProcessor:
             json.dump(stats, f, indent=2)
 
     def _first_execution_step(self, episode_data: h5py.Group) -> int:
-        """Index of first timestep where is_video_demo is False."""
-        step = 0
-        while episode_data[f"timestep_{step}"]["info"]["is_video_demo"][()]:
-            step += 1
-        return step
-    
-    def _remove_redundant_keyframes(self, keyframe_idxs: list[int], exec_start_idx: int, threshold: int = 10) -> list[int]:
-        # check if some keyframe indexs are too close (within 10 steps), if so, use the last one
-        exec_keyframe_idxs = [i for i in keyframe_idxs if i >= exec_start_idx] # only consider execution steps
-        new_keyframe_idxs = []
-        for i in range(len(exec_keyframe_idxs)):
-            if i == 0:
-                new_keyframe_idxs.append(exec_keyframe_idxs[i])
-            else:
-                if abs(new_keyframe_idxs[-1] - exec_keyframe_idxs[i]) <= threshold:
-                    new_keyframe_idxs[-1] = exec_keyframe_idxs[i]
-                else:
-                    new_keyframe_idxs.append(exec_keyframe_idxs[i])
-        return sorted(new_keyframe_idxs)
+        return first_execution_step(episode_data)
+
+    def _remove_redundant_keyframes(
+        self, keyframe_idxs: list[int], exec_start_idx: int, threshold: int = 10
+    ) -> list[int]:
+        return remove_redundant_keyframes(keyframe_idxs, exec_start_idx, threshold)
 
     def _process_episode(
         self,
@@ -249,7 +241,6 @@ class DatasetProcessor:
     ) -> tuple[int, MemoryBuffer, int, int]:
         episode_data = data[f"episode_{episode_idx}"]
         task_goal = episode_data["setup"]["task_goal"][()][0].decode()
-        print(f"task_goal: {task_goal}")
         num_timesteps = sum(1 for k in episode_data.keys() if k.startswith("timestep_"))
         exec_start_idx = self._first_execution_step(episode_data)
 
@@ -262,25 +253,20 @@ class DatasetProcessor:
 
         for step_idx in range(num_timesteps):
             ts = episode_data[f"timestep_{step_idx}"]
-            import pdb; pdb.set_trace()
             action_chunk = get_action_chunk(episode_data, step_idx, horizon=ACTION_CHUNK_HORIZON)
             joint_state = ts["obs"]["joint_state"][()]
             gripper_state = ts["obs"]["gripper_state"][()]
-            state = np.concatenate([joint_state, gripper_state[:1]])
+            state = np.concatenate([joint_state, gripper_state[:1]], axis=0, dtype=np.float32)
             image = ts["obs"]["front_rgb"][()]
             wrist_image = ts["obs"]["wrist_rgb"][()]
             is_video_demo = step_idx < exec_start_idx
             assert ts["info"]["is_video_demo"][()] == is_video_demo, "is_video_demo mismatch"
-            
+
             if not ts['info']['is_completed'][()]:
                 simple_subgoal = ts["info"]["simple_subgoal"][()].decode()
                 grounded_subgoal = ts["info"]["grounded_subgoal"][()].decode()
                 simple_subgoal_online = ts["info"]["simple_subgoal_online"][()].decode()
                 grounded_subgoal_online = ts["info"]["grounded_subgoal_online"][()].decode()
-            
-            print(f"simple_subgoal: {simple_subgoal}, grounded_subgoal: {grounded_subgoal}")
-            print(f"simple_subgoal_online: {simple_subgoal_online}, grounded_subgoal_online: {grounded_subgoal_online}")
-            print(f"is_subgoal_boundary: {ts['info']['is_subgoal_boundary'][()]}")
             
             if ts["info"]["is_subgoal_boundary"][()]:
                 keyframe_idxs.append(step_idx)
@@ -327,32 +313,6 @@ class DatasetProcessor:
 
         mem_buffer.clear()
         print(
-            "Episode %s: timesteps=%s, exec_start=%s, kept_indices=%s, task_goal='%s'",
-            global_episode_idx, num_timesteps, exec_start_idx, len(kept_indices), task_goal,
+            f"Episode {global_episode_idx}: timesteps={num_timesteps}, exec_start={exec_start_idx}, kept_indices={len(kept_indices)}, task_goal='{task_goal}'",
         )
         return global_episode_idx + 1, mem_buffer, exec_sample_id, total_sample_id
-
-
-def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Preprocess raw HDF5 dataset for training")
-    parser.add_argument("--raw_data_path", type=str, default="data/robomme_data_h5", help="Raw HDF5 directory")
-    parser.add_argument("--preprocessed_data_path", type=str, default="data/robomme_preprocessed_data", help="Output directory")
-    parser.add_argument("--max_episodes_per_file", type=int, default=None, help="Cap episodes per file (default: all)")
-    parser.add_argument("--visualize", action="store_true", help="Write visualization MP4s")
-    return parser.parse_args()
-
-
-if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
-    args = _parse_args()
-    t0 = time.perf_counter()
-    processor = DatasetProcessor(
-        raw_data_path=args.raw_data_path,
-        preprocessed_data_path=args.preprocessed_data_path,
-        visualize=args.visualize,
-    )
-    processor.run(max_episodes_per_file=args.max_episodes_per_file)
-    print("Time taken: %.2f minutes", (time.perf_counter() - t0) / 60)
