@@ -25,7 +25,7 @@
 
 ## Updates
 
-- [02/2026] We release MME-VLA Suite, a family of memory-augmented vision-language-action (VLA) models based on the $\pi_{0.5}$ backbone. See our paper for more details and analysis.
+- [03/2026] 🚀 We release MME-VLA Suite, a family of memory-augmented vision-language-action (VLA) models based on the $\pi_{0.5}$ backbone. See our paper for more details and analysis.
 
 
 ## Installation
@@ -80,9 +80,9 @@ Place all data under the `data` directory:
 mkdir data && cd data
 ```
 
-Download the raw RoboMME training files [here](https://huggingface.co/datasets/Yinpei/robomme_h5_data):
+Download the raw RoboMME training files [here](https://huggingface.co/datasets/Yinpei/robomme_data_h5):
 ```
-git clone git@hf.co:datasets/Yinpei/robomme_h5_data data/robomme_h5_data
+git clone git@hf.co:datasets/Yinpei/robomme_data_hdf5 data/robomme_data_h5
 ```
 
 **(Optional)** Download preprocessed RoboMME data [here](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data):
@@ -90,7 +90,9 @@ git clone git@hf.co:datasets/Yinpei/robomme_h5_data data/robomme_h5_data
 git clone git@hf.co:datasets/Yinpei/robomme_preprocessed_data data/robomme_preprocessed_data
 ```
 and run `uv run scripts/unzip_data.py data/robomme_preprocessed_data` to unzip the files.  
-Alternatively, run `uv run scripts/build_robomme_dataset.py` to generate the preprocessed data (takes about 2–3 hours).
+Alternatively, run `uv run scripts/build_robomme_dataset.py` to generate the preprocessed pickle files  (takes about 2–3 hours).   
+
+We also provide data in LeRobot format [here](https://huggingface.co/datasets/Yinpei/robomme_data_lerobot). In our experiments, however, the LeRobot dataloader significantly increased CPU memory usage during training, which can be a bottleneck in shared training environments (e.g. on HPC). For this reason, we use our custom data format and dataloader in this repository. 
 
 
 **(Optional)** Download VLM subgoal prediction training data [here](https://huggingface.co/datasets/Yinpei/vlm_subgoal_prediction_data):
@@ -228,6 +230,8 @@ os.environ['MUJOCO_GL'] = 'osmesa'
 Q2: Why does the evaluation stop?
 A2: We noticed that sometimes, on long-horizon tasks such as VideoPlaceButton, the WebSocket connection breaks due to large video frames. If the evaluation process is interrupted, you can rerun `scripts/eval.sh`, and the program will resume based on the generated `progress.json`.
 
+Q3: CUDA out of memory when training VLA models.
+A3: You can set `export XLA_PYTHON_CLIENT_MEM_FRACTION=0.95` to utilize more GPU memory for JAX.
 
 ## Acknowledgement
 This work was supported in part by NSF SES-2128623, NSF CAREER #2337870, NSF NRI #2220876, NSF NAIRR250085. We would also like to thank the wonderful [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main) codebase from Physical-Intelligence.

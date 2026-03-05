@@ -195,7 +195,7 @@ class DatasetProcessor:
         for fname in os.listdir(self.raw_data_path):
             if not fname.endswith(".h5"):
                 continue
-            logger.info("Processing file: %s", fname)
+            print("Processing file: %s", fname)
             path = os.path.join(self.raw_data_path, fname)
             with h5py.File(path, "r") as data:
                 episode_indices = sorted(
@@ -223,13 +223,6 @@ class DatasetProcessor:
         while episode_data[f"timestep_{step}"]["info"]["is_video_demo"][()]:
             step += 1
         return step
-
-    @staticmethod
-    def _resolve_subgoal(
-        raw: str, last: str | None, sentinel: str = "complete"
-    ) -> str:
-        """Use last valid subgoal when current is sentinel (e.g. 'complete')."""
-        return last if last is not None and sentinel in raw else raw
     
     def _remove_redundant_keyframes(self, keyframe_idxs: list[int], exec_start_idx: int, threshold: int = 10) -> list[int]:
         # check if some keyframe indexs are too close (within 10 steps), if so, use the last one
@@ -255,11 +248,11 @@ class DatasetProcessor:
         total_sample_id: int,
     ) -> tuple[int, MemoryBuffer, int, int]:
         episode_data = data[f"episode_{episode_idx}"]
-        task_goal = episode_data["setup"]["task_goal"][()].decode()
+        task_goal = episode_data["setup"]["task_goal"][()][0].decode()
+        print(f"task_goal: {task_goal}")
         num_timesteps = sum(1 for k in episode_data.keys() if k.startswith("timestep_"))
         exec_start_idx = self._first_execution_step(episode_data)
 
-        last_simple = last_grounded = last_simple_online = last_grounded_online = None
         visualization_videos: list[np.ndarray] = []
         record_videos: list[np.ndarray] = []
         keyframe_idxs: list[int] = []
@@ -269,26 +262,27 @@ class DatasetProcessor:
 
         for step_idx in range(num_timesteps):
             ts = episode_data[f"timestep_{step_idx}"]
+            import pdb; pdb.set_trace()
             action_chunk = get_action_chunk(episode_data, step_idx, horizon=ACTION_CHUNK_HORIZON)
-            state = ts["obs"]["joint_state"][()][0, :JOINT_STATE_DIM]
-            image = ts["obs"]["front_camera_rgb"][()]
-            wrist_image = ts["obs"]["wrist_camera_rgb"][()]
+            joint_state = ts["obs"]["joint_state"][()]
+            gripper_state = ts["obs"]["gripper_state"][()]
+            state = np.concatenate([joint_state, gripper_state[:1]])
+            image = ts["obs"]["front_rgb"][()]
+            wrist_image = ts["obs"]["wrist_rgb"][()]
             is_video_demo = step_idx < exec_start_idx
             assert ts["info"]["is_video_demo"][()] == is_video_demo, "is_video_demo mismatch"
-
-            simple_subgoal = ts["info"]["simple_subgoal"][()].decode()
-            grounded_subgoal = ts["info"]["grounded_subgoal"][()].decode()
-            simple_subgoal_online = ts["info"]["simple_subgoal_online"][()].decode()
-            grounded_subgoal_online = ts["info"]["grounded_subgoal_online"][()].decode()
-
-            simple_subgoal = self._resolve_subgoal(simple_subgoal, last_simple)
-            grounded_subgoal = self._resolve_subgoal(grounded_subgoal, last_grounded)
-            simple_subgoal_online = self._resolve_subgoal(simple_subgoal_online, last_simple_online)
-            grounded_subgoal_online = self._resolve_subgoal(grounded_subgoal_online, last_grounded_online)
-            last_simple, last_grounded = simple_subgoal, grounded_subgoal
-            last_simple_online, last_grounded_online = simple_subgoal_online, grounded_subgoal_online
             
-            if ts["info"]["is_keyframe"][()]:
+            if not ts['info']['is_completed'][()]:
+                simple_subgoal = ts["info"]["simple_subgoal"][()].decode()
+                grounded_subgoal = ts["info"]["grounded_subgoal"][()].decode()
+                simple_subgoal_online = ts["info"]["simple_subgoal_online"][()].decode()
+                grounded_subgoal_online = ts["info"]["grounded_subgoal_online"][()].decode()
+            
+            print(f"simple_subgoal: {simple_subgoal}, grounded_subgoal: {grounded_subgoal}")
+            print(f"simple_subgoal_online: {simple_subgoal_online}, grounded_subgoal_online: {grounded_subgoal_online}")
+            print(f"is_subgoal_boundary: {ts['info']['is_subgoal_boundary'][()]}")
+            
+            if ts["info"]["is_subgoal_boundary"][()]:
                 keyframe_idxs.append(step_idx)
 
             frame_dict = {
@@ -332,7 +326,7 @@ class DatasetProcessor:
             visualize_token_dropping(kept_indices, visualization_videos, episode_feature_dir, exec_start_idx, task_goal)
 
         mem_buffer.clear()
-        logger.info(
+        print(
             "Episode %s: timesteps=%s, exec_start=%s, kept_indices=%s, task_goal='%s'",
             global_episode_idx, num_timesteps, exec_start_idx, len(kept_indices), task_goal,
         )
@@ -341,7 +335,7 @@ class DatasetProcessor:
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Preprocess raw HDF5 dataset for training")
-    parser.add_argument("--raw_data_path", type=str, default="data/robomme_h5_data", help="Raw HDF5 directory")
+    parser.add_argument("--raw_data_path", type=str, default="data/robomme_data_h5", help="Raw HDF5 directory")
     parser.add_argument("--preprocessed_data_path", type=str, default="data/robomme_preprocessed_data", help="Output directory")
     parser.add_argument("--max_episodes_per_file", type=int, default=None, help="Cap episodes per file (default: all)")
     parser.add_argument("--visualize", action="store_true", help="Write visualization MP4s")
@@ -361,4 +355,4 @@ if __name__ == "__main__":
         visualize=args.visualize,
     )
     processor.run(max_episodes_per_file=args.max_episodes_per_file)
-    logger.info("Time taken: %.2f minutes", (time.perf_counter() - t0) / 60)
+    print("Time taken: %.2f minutes", (time.perf_counter() - t0) / 60)
