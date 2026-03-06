@@ -46,7 +46,7 @@ git submodule update --init
 ```
 
 Then install the RoboMME environment following the documentation [here](examples/robomme/readme.md).
-We use separate environments for VLA training/inference and the RoboMME simulator. During evaluation, we use WebSocket to connect them, following [openpi](https://github.com/Physical-Intelligence/openpi/tree/main).
+We use separate environments for VLA training/inference and the RoboMME simulator. During evaluation, we use a WebSocket connection between them, following [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main).
 
 ## Repository Structure
 ```
@@ -70,11 +70,11 @@ We use separate environments for VLA training/inference and the RoboMME simulato
 ├── scripts                             # train/eval/data_generation scripts
 ├── src
 │   ├── mme_vla_suite                   # MME_VLA code, follows openpi structure 
-│   └── openpi                          # original openpi code with minor changes
+│   └── openpi                          # original OpenPi code with minor changes
 └── third_party
 ```
 
-This repo is built on [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main). We highly recommend getting familiar with OpenPi first before working with this repo.
+This repository is built on top of [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main). We highly recommend becoming familiar with OpenPi first before working with this repo.
 
 ## Download
 
@@ -95,9 +95,9 @@ git clone git@hf.co:datasets/Yinpei/robomme_preprocessed_data data/robomme_prepr
 ```
 and run `uv run scripts/unzip_data.py data/robomme_preprocessed_data` to unzip the files.  
 
-Alternatively, you can run `uv run scripts/build_dataset.py` to generate the preprocessed pickle files  (takes about 2–3 hours) and/or VLM subgoal predictor training data  (takes about 30-60 minutes).   
+Alternatively, you can run `uv run scripts/build_dataset.py` to generate the preprocessed pickle files (takes about 2–3 hours) and/or the VLM subgoal predictor training data (takes about 30–60 minutes).   
 
-We also provide data in LeRobot format [here](https://huggingface.co/datasets/Yinpei/robomme_data_lerobot). In our experiments, however, the LeRobot dataloader significantly increased CPU memory usage during training, which can be a bottleneck in shared training environments (e.g. on HPC). For this reason, we use our custom data format and [dataloader](https://github.com/RoboMME/robomme_policy_learning/blob/89efeaab461cc2b00ede344edf4283692e9c3ada/src/mme_vla_suite/training/dataset.py#L42) in this repository. 
+We also provide data in the LeRobot format [here](https://huggingface.co/datasets/Yinpei/robomme_data_lerobot). In our experiments, however, the LeRobot dataloader significantly increased CPU memory usage during training, which can be a bottleneck in shared training environments (e.g., on HPC clusters). For this reason, we use our custom data format and [dataloader](https://github.com/RoboMME/robomme_policy_learning/blob/89efeaab461cc2b00ede344edf4283692e9c3ada/src/mme_vla_suite/training/dataset.py#L42) in this repository. 
 
 
 ### Download Pre-trained Models
@@ -105,7 +105,7 @@ Download the $\pi_{0.5}$-base backbone:
 ```
 uv run scripts/download_pi05_base.py
 ```
-Download the [pi05_vision_encoder](https://huggingface.co/Yinpei/pi05_vision_encoder) (a subset of the $\pi_{0.5}$ parameters used for dataset feature construction without loading the full model; visual token embeddings are computed and cached for training, and the vision encoder stays frozen):
+Download the [pi05_vision_encoder](https://huggingface.co/Yinpei/pi05_vision_encoder), which is a subset of the $\pi_{0.5}$ parameters used for dataset feature construction without loading the full model. Visual token embeddings are computed and cached for training, and the vision encoder remains frozen:
 ```
 cd $OPENPI_DATA_HOME
 git clone git@hf.co:Yinpei/pi05_vision_encoder
@@ -120,13 +120,13 @@ mkdir runs/evaluation   # evaluation results
 mkdir runs/assets       # save all normalization statistics files here
 ```
 
-You can skip the following steps if you want to fine-tune your own VLA/VLM directly; see [Model Training](#model-training).
+You can skip the following steps if you plan to fine-tune your own VLA/VLM models directly; see [Model Training](#model-training).
 
 Download MME-VLA variants [here](https://huggingface.co/Yinpei/mme_vla_suite):
 ```
 git clone git@hf.co:Yinpei/mme_vla_suite runs/ckpts/mme_vla_suite
 ```
-We release all checkpoints for symbolic and perceptual memory, and a subset of recurrent memory for research. Recurrent memory is still underperforming; we will release more recurrent variants as results improve.
+We release all checkpoints for symbolic and perceptual memory, and a subset of recurrent memory variants for research. Recurrent memory is still underperforming; we will release more recurrent variants as results improve.
 
 Download VLM subgoal predictors [here](https://huggingface.co/Yinpei/vlm_subgoal_predictor):
 ```
@@ -148,17 +148,17 @@ to unzip all of them.
 ## Model Training
 
 ### Data Preparation
-Prepare training data by either downloading [preprocessed files](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data) or run:
+Prepare training data by either downloading [preprocessed files](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data) or running:
 ```
 uv run scripts/build_robomme_dataset.py   --dataset_type robomme_pkl  --raw_data_path=<downloaded_h5_data_dir> --preprocessed_data_path=<your_target_dir>
 ```
 
-Then compute normalization statistics (takes about 3 minutes):
+Then compute normalization statistics (this takes about 3 minutes):
 ```
 uv run scripts/compute_norm_stats.py --config-name mme_vla_suite --repo-id robomme --dataset-path="data/robomme_preprocessed_data"
 uv run scripts/compute_norm_stats.py --config-name pi05_baseline --repo-id robomme --dataset-path="data/robomme_preprocessed_data"
 ```
-This produces the following under `runs`:
+This produces the following structure under `runs`:
 ```
 .
 ├── assets
@@ -170,29 +170,29 @@ This produces the following under `runs`:
 │           └── norm_stats.json
 ```
 
-You can also compare with our computed `norm_stats.json` provided [here](assets/norm_stats.json) to check if your processing is correct. A small difference is acceptable.
+You can also compare against our reference `norm_stats.json` provided [here](assets/norm_stats.json) to check whether your processing is correct. Small differences are acceptable.
 
 ### Train π₀.₅ baseline
-This variant uses no history and fine-tunes the $\pi_{0.5}$ checkpoints with the vision encoder frozen (for comparison with MME-VLA):
+This variant does not use history and fine-tunes the $\pi_{0.5}$ checkpoints with the vision encoder frozen (for comparison with MME-VLA):
 ```
 bash scripts/finetune_pi05_baseline.sh
 ```
-You can change `--exp-name` to adapt to your own needs.
+You can change `--exp-name` to suit your own experiment naming.
 
 ### Train MME-VLA policies
 ```
 bash scripts/finetune_mme_vla_suite.sh
 ```
-Set `MME_VLA_TYPE` to train a specific model variant. You can change `--exp-name` to adapt to your own needs.
+Set `MME_VLA_TYPE` to train a specific model variant. You can also change `--exp-name` to suit your own experiment naming.
 
 ### Train VLM subgoal predictor
-[robomme_preprocessed_data](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data) already contains VLM subgoal prediction data, you can also generate it with 
+[robomme_preprocessed_data](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data) already contains VLM subgoal prediction data, but you can also generate it with:
 ```
 uv run scripts/build_robomme_dataset.py  --dataset_type vlm_subgoal_qwenvl  --raw_data_path=<downloaded_h5_data_dir> --preprocessed_data_path=<your_target_dir>
 uv run scripts/build_robomme_dataset.py  --dataset_type vlm_subgoal_memer  --raw_data_path=<downloaded_h5_data_dir> --preprocessed_data_path=<your_target_dir>
 ```
 
-After data is ready, run
+After the data is ready, run:
 ```
 micromamba activate robomme 
 bash scripts/finetune_vlm_subgoal_predictor.sh
@@ -213,7 +213,7 @@ Set the `MODEL_TYPE` variable to one of the following:
 3. **Perceptual MME-VLA:** `perceptual-framesamp-context`, `perceptual-framesamp-modul`, `perceptual-framesamp-expert`, `perceptual-tokendrop-context`, `perceptual-tokendrop-modul`, `perceptual-tokendrop-expert`
 4. **Recurrent MME-VLA:** `recurrent-rmt-context`, `recurrent-rmt-modul`, `recurrent-rmt-expert`, `recurrent-ttt-context`, `recurrent-ttt-modul`, `recurrent-ttt-expert`
 
-Running `eval.sh` automatically starts two tmux windows: one for the policy server and one for RoboMME evaluation. If the evaluation is interrupted, you can re-run the script; it will automatically resume from the generated `progress.json`.
+Running `eval.sh` automatically starts two tmux windows: one for the policy server and one for RoboMME evaluation. If the evaluation is interrupted, you can rerun the script; it will automatically resume from the generated `progress.json`.
 
 
 ### Manual evaluation (per model)
@@ -222,21 +222,21 @@ Details are provided [here](docs/manual_evaluation.md).
 
 
 ## Troubleshooting
-Q1: Failure with Vulkan installation.  
-A1: We recommend reinstalling the NVIDIA driver and Vulkan packages. We use NVIDIA driver 570.211.01 and Vulkan 1.3.275. If it still does not work, you can switch to CPU rendering:
+Q1: Vulkan installation fails.  
+A1: Please refer to the ManiSkill [solution](https://maniskill.readthedocs.io/en/latest/user_guide/getting_started/installation.html#vulkan). If it still does not work, we recommend reinstalling the NVIDIA driver and Vulkan packages. We use NVIDIA driver 570.211.01 and Vulkan 1.3.275. You can also switch to CPU rendering:
 ```
 os.environ['SAPIEN_RENDER_DEVICE'] = 'cpu'
 os.environ['MUJOCO_GL'] = 'osmesa'
 ```
 
-Q2: Why does the evaluation stop?
-A2: We noticed that sometimes, on long-horizon tasks such as VideoPlaceButton, the WebSocket connection breaks due to large video frames. If the evaluation process is interrupted, you can rerun `scripts/eval.sh`, and the program will resume based on the generated `progress.json`.
+Q2: Why does the evaluation stop?  
+A2: We observed that, on long-horizon tasks such as VideoPlaceButton, the WebSocket connection can break due to large video frames. If the evaluation process is interrupted, you can rerun `scripts/eval.sh`, and the program will resume based on the generated `progress.json`.
 
-Q3: CUDA out of memory when training VLA models.
-A3: You can set environment variable `XLA_PYTHON_CLIENT_MEM_FRACTION=0.95` to utilize more GPU memory for JAX.
+Q3: CUDA runs out of memory when training VLA models.  
+A3: You can set the environment variable `XLA_PYTHON_CLIENT_MEM_FRACTION=0.95` to allow JAX to use more GPU memory.
 
 ## Acknowledgement
-This work was supported in part by NSF SES-2128623, NSF CAREER #2337870, NSF NRI #2220876, NSF NAIRR250085, NSF IIS-1949634. We would also like to thank the wonderful [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main) codebase from Physical-Intelligence.
+This work was supported in part by NSF SES-2128623, NSF CAREER #2337870, NSF NRI #2220876, NSF NAIRR250085, and NSF IIS-1949634. We would also like to thank the excellent [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main) codebase from Physical-Intelligence.
 
 
 ## Citation

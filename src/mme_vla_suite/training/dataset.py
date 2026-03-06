@@ -47,10 +47,8 @@ class RoboMMEDataset(Dataset):
         history_config: DictConfig | None,
         action_horizon: int,
         compute_norm_stats: bool = False,
-        eef_vel_stride: int = 2,
     ):
         self.history_config = history_config
-        self.eef_vel_stride = eef_vel_stride
         
         
         self.action_horizon = action_horizon
