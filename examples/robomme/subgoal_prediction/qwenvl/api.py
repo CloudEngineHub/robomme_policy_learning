@@ -10,6 +10,7 @@ os.environ['IMAGE_MAX_TOKEN_NUM'] = '256'
 os.environ['VIDEO_MAX_TOKEN_NUM'] = '64'
 os.environ['FPS_MAX_FRAMES'] = '10'
 
+import json
 from swift.llm import PtEngine, InferRequest, RequestConfig
 
 class Qwen3VLModel:
@@ -32,8 +33,9 @@ class Qwen3VLModel:
         else:
             raise ValueError(f"Invalid subgoal type: {subgoal_type}")
         
+        print(f"Loading Qwen3-VL-4B-Instruct model Adapter from {adapter_path}")
         self.engine = PtEngine(
-            model_id_or_path="/nfs/turbo/coe-chaijy-unreplicated/pre-trained-weights/Qwen3-VL-4B-Instruct", #'Qwen/Qwen3-VL-4B-Instruct',
+            model_id_or_path='Qwen/Qwen3-VL-4B-Instruct',
             adapters=[adapter_path],
             attn_impl='flash_attention_2' #'sdpa'
         )
@@ -97,6 +99,10 @@ class Qwen3VLModel:
         if os.path.exists(save_dir):
             shutil.rmtree(save_dir)
         os.makedirs(save_dir, exist_ok=True)
+        
+        ep_name = os.path.basename(save_dir)
+        self.save_json_path = os.path.join(os.path.dirname(save_dir), f"{ep_name}_QwenVL_log.jsonl")
+
         
         if video_query is not None and len(video_query) > 0:
             imageio.mimsave(os.path.join(self.save_dir, f"step_0_video.mp4"), video_query, fps=30)
@@ -188,6 +194,10 @@ class Qwen3VLModel:
         
         print("\n\n")
         pprint.pprint(infer_request_dict)
+        
+        with open(self.save_json_path, "a") as f:
+            json.dump(infer_request_dict, f)
+            f.write("\n")
 
         return InferRequest(**infer_request_dict)
     

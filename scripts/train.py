@@ -393,12 +393,6 @@ def main(config: _config.TrainConfig, tentative_run: bool = False):
         f"Initialized train state:\n{training_utils.array_tree_to_info(train_state.params.filter(nnx.All(nnx.Param)))}"
     )
 
-    # I didn't save train_state due to limited disk space in our lab
-    # if resuming:
-    #     train_state = _checkpoints.restore_state(
-    #         checkpoint_manager, train_state, data_loader
-    #     )
-
     ptrain_step = jax.jit(
         functools.partial(train_step, config),
         in_shardings=(replicated_sharding, train_state_sharding, data_sharding),
@@ -443,29 +437,6 @@ def main(config: _config.TrainConfig, tentative_run: bool = False):
             pbar.write(f"Step {step}: {info_str}")
             wandb.log(reduced_info, step=step)
             infos = []
-
-        if (
-            step == data_loader._total_samples // config.batch_size
-            and config.ascending_sampler
-            and history_config.representation_type == "recurrent"
-        ):
-            # only use ascending sampler for one epoch
-            del data_iter
-            del data_loader
-            print("Creating new data loader with random sampler")
-            data_loader = _data_loader.create_data_loader(
-                data_config,
-                history_config=config.model.history_config,
-                sharding=data_sharding,
-                shuffle=True,
-                action_horizon=config.model.action_horizon,
-                batch_size=config.batch_size,
-                num_workers=config.num_workers,
-                seed=config.seed,
-                use_ascending_sampler=False,
-            )
-            data_iter = iter(data_loader)
-            time.sleep(3)
 
         batch = next(data_iter)
 

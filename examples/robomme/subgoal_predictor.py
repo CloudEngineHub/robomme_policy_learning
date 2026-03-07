@@ -191,6 +191,10 @@ class QwenVLSubgoalPredictor(SubgoalPredictorBase):
         response = self.api.call(self.video_buffer[-1], count, keep_period)
         self.video_buffer.clear()
         return response, False
+    
+    def end_episode(self, epstate: EpisodeState, success_flag: str) -> None:
+        if self.episode_dir:
+            shutil.rmtree(self.episode_dir) # save some space, you can comment this function out to keep all video frames
 
 
 class MemERSubgoalPredictor(SubgoalPredictorBase):
@@ -215,7 +219,7 @@ class MemERSubgoalPredictor(SubgoalPredictorBase):
         response = self.api.call()
         return response, False
 
-    def finalize(self, epstate: EpisodeState, success_flag: str) -> None:
+    def end_episode(self, epstate: EpisodeState, success_flag: str) -> None:
         if self.episode_dir:
             shutil.rmtree(self.episode_dir) # save some space, you can comment this function out to keep all video frames
 

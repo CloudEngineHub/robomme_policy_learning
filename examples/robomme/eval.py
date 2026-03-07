@@ -58,7 +58,9 @@ class Args:
     qwenvl_simpleSG_adapter_path: str = "runs/ckpts/vlm_subgoal_predictor/qwenvl/simple_subgoal/checkpoint-1400"
     qwenvl_groundSG_adapter_path: str = "runs/ckpts/vlm_subgoal_predictor/qwenvl/grounded_subgoal/checkpoint-1200"
     memer_adapter_path: str = "runs/ckpts/vlm_subgoal_predictor/memer/grounded_subgoal/checkpoint-1300"
-
+    subgoal_keep_period: int = 1 # ever subgoal should be kept for this many steps
+    # this can accelerate the evaluation process for symbolic memory
+    # In our experiments, we just set this to 1
 
 
 
@@ -94,11 +96,15 @@ class EpisodeEvaluator:
             subgoal_predictor.step(epstate)
 
             if not epstate.action_plan:
-                subgoal, has_api_error = subgoal_predictor.get_subgoal(
-                    epstate.count,
-                    subgoal,
-                    last_subgoal,
-                )
+                if epstate.count % self.args.subgoal_keep_period == 0 or last_subgoal is None:
+                    subgoal, has_api_error = subgoal_predictor.get_subgoal(
+                        epstate.count,
+                        subgoal,
+                        last_subgoal,
+                    )
+                else:
+                    subgoal = last_subgoal
+                    has_api_error = False
 
                 if has_api_error:
                     break
