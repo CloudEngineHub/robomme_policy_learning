@@ -59,8 +59,8 @@ class EnvRunner:
             self.task_goal = self.info["task_goal"][0]
         else:
             self.task_goal = self.info["task_goal"]
-        images = [f for f in obs["front_rgb_list"]]
-        wrist_images = [f for f in obs["wrist_rgb_list"]]
+        images = obs["front_rgb_list"]
+        wrist_images = obs["wrist_rgb_list"]
         states = [pack_state(joint_state, gripper_state) for joint_state, gripper_state in 
                   zip(obs["joint_state_list"], obs["gripper_state_list"])]
 
