@@ -32,6 +32,8 @@ class PolicyServer:
         self._metadata = metadata or {}
 
     def serve_forever(self) -> None:
+        print(f"Serving policy on {self._host}:{self._port}...")
+        print("Waiting for client to connect...")
         asyncio.run(self.run())
 
     async def run(self):
