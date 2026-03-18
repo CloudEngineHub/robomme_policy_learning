@@ -1,4 +1,4 @@
-# Docker Installation for MME-VLA
+# Docker Installation for MME-VLA Policy Learning
 
 This guide sets up Docker and NVIDIA GPU support so you can build and run the MME-VLA image.
 
