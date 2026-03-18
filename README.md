@@ -9,8 +9,8 @@
 
 - [Updates](#updates)
 - [Installation](#installation)
-  - [Install MME-VLA-Suite Repo](#install-mme-vla-suite-repo)
-  - [Install RoboMME Simulator](#install-robomme-simulator)
+  - [Install with uv](#install-with-uv)
+  - [Install with docker](#install-with-docker)
 - [Repository Structure](#repository-structure)
 - [Download](#download)
   - [Download Training Data](#download-training-data)
