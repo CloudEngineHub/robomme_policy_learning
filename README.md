@@ -2,12 +2,15 @@
 
 ### [Website](https://robomme.github.io/) | [Paper](https://arxiv.org/abs/2603.04639) | [Benchmark Repo](https://github.com/RoboMME/robomme_benchmark) | [Dataset](https://huggingface.co/Yinpei/robomme_data_h5) | [Models](https://huggingface.co/Yinpei/mme_vla_suite) | [Leaderboard](https://robomme.github.io/leaderboard.html)
 
+### 🚀 Join Our Community: [WeChat Group](doc/WechatIMG365.jpg) | [Discord](https://discord.gg/xbmSqMd4)
+![Robomme bench](assets/robomme_bench.jpg)
+
 ## Outline
 
 - [Updates](#updates)
 - [Installation](#installation)
-  - [Install MME-VLA-Suite Repo](#install-mme-vla-suite-repo)
-  - [Install RoboMME Simulator](#install-robomme-simulator)
+  - [Install with uv](#install-with-uv)
+  - [Install with docker](#install-with-docker)
 - [Repository Structure](#repository-structure)
 - [Download](#download)
   - [Download Training Data](#download-training-data)
@@ -33,7 +36,8 @@
 
 ## Installation
 
-### Install Policy Learning Repo
+### Install with UV
+#### Install Policy Learning Repo
 ```
 GIT_LFS_SKIP_SMUDGE=1 uv sync
 GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
@@ -42,7 +46,7 @@ GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
 Set the `OPENPI_DATA_HOME` path in your `~/.bashrc`, e.g. `export OPENPI_DATA_HOME=<your_openpi_homedir>`. For more details, please refer to [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main?tab=readme-ov-file#fine-tuned-models).
 
 
-### Install RoboMME Simulator
+#### Install RoboMME Simulator
 Clone the RoboMME submodule:
 ```
 git submodule update --init
@@ -50,6 +54,12 @@ git submodule update --init
 
 Then install the RoboMME environment following the documentation [here](examples/robomme/readme.md).
 We use separate environments for VLA training/inference and the RoboMME simulator. During evaluation, we use a WebSocket connection between them, following [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main).
+
+
+### Install with Docker
+After downloading the data in the `data` directory and setting up `runs` in the following structure.  
+Update the RoboMME submodule with `git submodule update --init`.
+Then build the Docker image following [this](docs/docker_installation.md).
 
 ## Repository Structure
 ```
@@ -92,7 +102,7 @@ Download the raw RoboMME training files [here](https://huggingface.co/Yinpei/rob
 git clone git@hf.co:Yinpei/robomme_data_h5 data/robomme_data_h5
 ```
 
-**(Optional)** Download preprocessed RoboMME data [here](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data):
+(Optional) Download preprocessed RoboMME data [here](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data):
 ```
 git clone git@hf.co:datasets/Yinpei/robomme_preprocessed_data data/robomme_preprocessed_data
 ```
@@ -197,7 +207,7 @@ uv run scripts/build_robomme_dataset.py  --dataset_type vlm_subgoal_memer  --raw
 
 After the data is ready, run:
 ```
-micromamba activate robomme 
+micromamba activate robomme
 bash scripts/finetune_vlm_subgoal_predictor.sh
 ```
 Set `DATASET_PATH` according to which VLM you are training: (1) simple subgoals, (2) grounded subgoals, or (3) MemER-style subgoals.

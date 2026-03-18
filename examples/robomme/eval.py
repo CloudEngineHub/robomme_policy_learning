@@ -162,7 +162,7 @@ class EpisodeEvaluator:
 
         recorder = RolloutRecorder(video_save_dir, task_goal, fps=30)
 
-        print(f"\ntask_goal: {task_goal}")
+        print(f"task_goal: {task_goal}")
 
         epstate.image_buffer.extend(pre_traj["images"])
         epstate.wrist_image_buffer.extend(pre_traj["wrist_images"])
@@ -317,7 +317,7 @@ def evaluate(args: Args):
                     continue
 
                 env_runner.make_env(episode_id)
-                print(f"[robomme] env for task {task_name} episode {episode_id} setup finished")
+                print(f"\n[robomme] env for task {task_name} episode {episode_id} setup finished")
 
                 try:
                     success_flag = evaluator.eval_each_episode(env_runner, subgoal_predictor, video_save_dir)

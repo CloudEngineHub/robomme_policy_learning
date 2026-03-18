@@ -31,11 +31,11 @@
 ## π₀.₅ baseline
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7 --port=8001 policy:checkpoint --policy.dir=runs/ckpts/pi05_baseline/pi05_baseline/79999 --policy.config=pi05_baseline
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7 --port=8001 policy:checkpoint --policy.dir=runs/ckpts/pi05_baseline/pi05_baseline/79999 --policy.config=pi05_baseline
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=pi05_baseline --args.model_ckpt_id=79999 --args.no-use-history
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8001 --args.policy_name=pi05_baseline --args.model_ckpt_id=79999 --args.no-use-history
 ```
 
 ## MemER
@@ -56,11 +56,11 @@ CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --arg
 ### SimpleSG + Oracle
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8003 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-simple-subgoal/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8003 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-simple-subgoal/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8003 --args.policy_name=symbolic-simple-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-oracle 
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8003 --args.policy_name=symbolic-simple-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-oracle 
 ```
 
 ### SimpleSG + QwenVL
@@ -77,21 +77,21 @@ CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --arg
 Set the `GOOGLE_API_KEY` environment variable when using Gemini.
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8005 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-simple-subgoal/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8005 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-simple-subgoal/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8005 --args.policy_name=symbolic-simple-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-gemini 
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8005 --args.policy_name=symbolic-simple-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=simple_subgoal --args.use-gemini 
 ```
 
 ### GroundSG + Oracle
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8006 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-grounded-subgoal/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8006 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-grounded-subgoal/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8006 --args.policy_name=symbolic-grounded-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=grounded_subgoal --args.use-oracle 
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8006 --args.policy_name=symbolic-grounded-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=grounded_subgoal --args.use-oracle 
 ```
 
 ### GroundSG + QwenVL
@@ -108,11 +108,11 @@ CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --arg
 Set the `GOOGLE_API_KEY` environment variable when using Gemini.
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8008 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-grounded-subgoal/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8008 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/symbolic-grounded-subgoal/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8008 --args.policy_name=symbolic-grounded-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=grounded_subgoal --args.use-gemini 
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8008 --args.policy_name=symbolic-grounded-subgoal --args.model_ckpt_id=79999  --args.subgoal-type=grounded_subgoal --args.use-gemini 
 ```
 
 ## Perceptual MME-VLA
@@ -120,61 +120,61 @@ python examples/robomme/eval.py --args.model_seed=7 --args.port=8008 --args.poli
 ### TokenDrop + Context
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8009 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-tokendrop-context/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8009 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-tokendrop-context/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8009 --args.policy_name=perceptual-tokendrop-context --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8009 --args.policy_name=perceptual-tokendrop-context --args.model_ckpt_id=79999
 ```
 
 ### TokenDrop + Modulation
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8010 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-tokendrop-modul/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8010 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-tokendrop-modul/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8010 --args.policy_name=perceptual-tokendrop-modul --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8010 --args.policy_name=perceptual-tokendrop-modul --args.model_ckpt_id=79999
 ```
 
 ### TokenDrop + Expert
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8011 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-tokendrop-expert/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8011 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-tokendrop-expert/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8011 --args.policy_name=perceptual-tokendrop-expert --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8011 --args.policy_name=perceptual-tokendrop-expert --args.model_ckpt_id=79999
 ```
 
 ### FrameSamp + Context
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8012 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-framesamp-context/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8012 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-framesamp-context/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8012 --args.policy_name=perceptual-framesamp-context --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8012 --args.policy_name=perceptual-framesamp-context --args.model_ckpt_id=79999
 ```
 
 ### FrameSamp + Modulation
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8013 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-framesamp-modul/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8013 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-framesamp-modul/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8013 --args.policy_name=perceptual-framesamp-modul --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8013 --args.policy_name=perceptual-framesamp-modul --args.model_ckpt_id=79999
 ```
 
 ### FrameSamp + Expert
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8014 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-framesamp-expert/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8014 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-framesamp-expert/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8014 --args.policy_name=perceptual-framesamp-expert --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8014 --args.policy_name=perceptual-framesamp-expert --args.model_ckpt_id=79999
 ```
 
 
@@ -183,61 +183,61 @@ python examples/robomme/eval.py --args.model_seed=7 --args.port=8014 --args.poli
 ### TTT + Context
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8015 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/recurrent-ttt-context/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8015 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/recurrent-ttt-context/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8015 --args.policy_name=recurrent-ttt-context --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8015 --args.policy_name=recurrent-ttt-context --args.model_ckpt_id=79999
 ```
 
 ### TTT + Modulation
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8016 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/recurrent-ttt-modul/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8016 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/recurrent-ttt-modul/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8016 --args.policy_name=recurrent-ttt-modul --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8016 --args.policy_name=recurrent-ttt-modul --args.model_ckpt_id=79999
 ```
 
 ### TTT + Expert
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8017 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/recurrent-ttt-expert/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8017 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/recurrent-ttt-expert/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8017 --args.policy_name=recurrent-ttt-expert --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8017 --args.policy_name=recurrent-ttt-expert --args.model_ckpt_id=79999
 ```
 
 ### RMT + Context
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8018 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/recurrent-rmt-context/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8018 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/recurrent-rmt-context/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8018 --args.policy_name=recurrent-rmt-context --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8018 --args.policy_name=recurrent-rmt-context --args.model_ckpt_id=79999
 ```
 
 ### RMT + Modulation
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8019 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/recurrent-rmt-modul/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8019 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/recurrent-rmt-modul/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8019 --args.policy_name=recurrent-rmt-modul --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8019 --args.policy_name=recurrent-rmt-modul --args.model_ckpt_id=79999
 ```
 
 ### RMT + Expert
 ```
 # terminal 0
-uv run scripts/serve_policy.py --seed=7  --port=8020 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/recurrent-rmt-expert/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8020 policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/recurrent-rmt-expert/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-python examples/robomme/eval.py --args.model_seed=7 --args.port=8020 --args.policy_name=recurrent-rmt-expert --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8020 --args.policy_name=recurrent-rmt-expert --args.model_ckpt_id=79999
 ```
 
 
