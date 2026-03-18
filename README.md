@@ -32,7 +32,8 @@
 
 ## Installation
 
-### Install Policy Learning Repo
+### Install with UV
+#### Install Policy Learning Repo
 ```
 GIT_LFS_SKIP_SMUDGE=1 uv sync
 GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
@@ -41,7 +42,7 @@ GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
 Set the `OPENPI_DATA_HOME` path in your `~/.bashrc`, e.g. `export OPENPI_DATA_HOME=<your_openpi_homedir>`. For more details, please refer to [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main?tab=readme-ov-file#fine-tuned-models).
 
 
-### Install RoboMME Simulator
+#### Install RoboMME Simulator
 Clone the RoboMME submodule:
 ```
 git submodule update --init
@@ -49,6 +50,11 @@ git submodule update --init
 
 Then install the RoboMME environment following the documentation [here](examples/robomme/readme.md).
 We use separate environments for VLA training/inference and the RoboMME simulator. During evaluation, we use a WebSocket connection between them, following [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main).
+
+
+### Install with Docker
+After downloading data in `data` dir and set up `runs` as following structure.  
+See more details [here](docs/docker_installation.md) to install with docker.
 
 ## Repository Structure
 ```
