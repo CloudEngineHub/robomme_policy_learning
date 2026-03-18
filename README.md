@@ -21,6 +21,7 @@
 - [Evaluation](#evaluation)
   - [Evaluation with the integrated script](#evaluation-with-the-integrated-script)
   - [Manual evaluation (per model)](#manual-evaluation-per-model)
+  - [RoboMME Challenge Remote Evaluation](#robomme-challenge-remote-evaluation)
 - [Troubleshooting](#troubleshooting)
 - [Acknowledgement](#acknowledgement)
 - [Citation](#citation)
@@ -222,12 +223,12 @@ Running `eval.sh` automatically starts two tmux windows: one for the policy serv
 Details are provided [here](docs/manual_evaluation.md).
 
 
-## RoboMME Challenge Remote Evaluation 
-We provide an example of MME-VLA (framesamp+modul) for RoboMME Challenge @ CVPR26. After downloading the MME-VLA [ckpts](https://huggingface.co/Yinpei/mme_vla_suite) into `run/ckpts` directory, then run
+### RoboMME Challenge Remote Evaluation 
+We provide an policy serving example using our MME-VLA (framesamp+modul) for [RoboMME Challenge](https://robomme.github.io/challenge.html) evaluation. After downloading the MME-VLA [ckpts](https://huggingface.co/Yinpei/mme_vla_suite) into `run/ckpts` directory, then run
 ```
 uv run scripts/challenge_serve_policy.py --host <you_public_IP> --port <port_num>
 ```
-to serve the policy. You may need to change the port and host to your own need.
+to serve the policy. You may need to change the port and host for your own need.
 
 Then run 
 ```
@@ -235,8 +236,7 @@ micromamba activate robomme
 python third_party/robomme_benchmark/scripts/challenge_eval_policy.py --host <you_public_IP> --port <port_num>
 ```
 on another terminal to check if the policy server is working locally. 
-When everything is verified, you can submit you IP and port on EvalAI to join the challenge. 
-
+When everything is verified, you can submit you IP and port on EvalAI to join the [challenge](). 
 
 ## Troubleshooting
 Q1: Vulkan installation fails.  

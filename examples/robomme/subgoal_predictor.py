@@ -175,7 +175,8 @@ class QwenVLSubgoalPredictor(SubgoalPredictorBase):
         current_subgoal: Optional[str],
         last_subgoal: Optional[str],
     ) -> Tuple[Optional[str], bool]:
-        # some tricks. QwenVL sometimes thinks the button has been pressed
+        # Some tricks. QwenVL sometimes thinks the button has been pressed. hot fix for now.
+        # Such special tricks are not encouraged if you consider participate RoboMME challenge @ CVPR 2026
         if self.env_name in ["ButtonUnmask", "PickHighlight"]:
             keep_period = 90
         elif self.env_name == "ButtonUnmaskSwap":
