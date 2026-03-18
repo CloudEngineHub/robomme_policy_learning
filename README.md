@@ -2,7 +2,7 @@
 
 ### [Website](https://robomme.github.io/) | [Paper](https://arxiv.org/abs/2603.04639) | [Benchmark Repo](https://github.com/RoboMME/robomme_benchmark) | [Dataset](https://huggingface.co/Yinpei/robomme_data_h5) | [Models](https://huggingface.co/Yinpei/mme_vla_suite) | [Leaderboard](https://robomme.github.io/leaderboard.html)
 
-### 🚀 Join Our Community: [Wechat Group](doc/WechatIMG365.jpg) | [Discord](https://discord.gg/xbmSqMd4)
+### 🚀 Join Our Community: [WeChat Group](doc/WechatIMG365.jpg) | [Discord](https://discord.gg/xbmSqMd4)
 ![Robomme bench](assets/robomme_bench.jpg)
 
 ## Outline
@@ -56,8 +56,9 @@ We use separate environments for VLA training/inference and the RoboMME simulato
 
 
 ### Install with Docker
-After downloading data in `data` dir and set up `runs` as following structure.  
-See more details [here](docs/docker_installation.md) to install with docker.
+After downloading the data in the `data` directory and setting up `runs` in the following structure.  
+Update the RoboMME submodule with `git submodule update --init`.
+Then build the Docker image following [this](docs/docker_installation.md).
 
 ## Repository Structure
 ```
@@ -100,7 +101,7 @@ Download the raw RoboMME training files [here](https://huggingface.co/Yinpei/rob
 git clone git@hf.co:Yinpei/robomme_data_h5 data/robomme_data_h5
 ```
 
-**(Optional)** Download preprocessed RoboMME data [here](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data):
+(Optional) Download preprocessed RoboMME data [here](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data):
 ```
 git clone git@hf.co:datasets/Yinpei/robomme_preprocessed_data data/robomme_preprocessed_data
 ```
@@ -205,7 +206,7 @@ uv run scripts/build_robomme_dataset.py  --dataset_type vlm_subgoal_memer  --raw
 
 After the data is ready, run:
 ```
-micromamba activate robomme 
+micromamba activate robomme
 bash scripts/finetune_vlm_subgoal_predictor.sh
 ```
 Set `DATASET_PATH` according to which VLM you are training: (1) simple subgoals, (2) grounded subgoals, or (3) MemER-style subgoals.
