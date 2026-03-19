@@ -5,8 +5,9 @@
     "use_camera_params": false,
     "email": "daiyp@umich.edu",
     "evaluation_method": "docker",
-    "docker_image": "yinpeidai/perceptual-framesamp-modul",
-    "host": "141.212.115.116",
-    "port": 8001,
-    "api_key": null
+    "checkpoints":[
+      "https://huggingface.co/Yinpei/perceptual-framesamp-modul"
+    ],
+    "docker_image": "yinpeidai/perceptual-framesamp-modul:latest",
+    "command": "uv run python -m  challenge_interface.scripts.deploy --checkpoint-dir perceptual-framesamp-modul/79999"
   }

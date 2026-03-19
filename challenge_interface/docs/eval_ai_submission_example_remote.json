@@ -7,5 +7,6 @@
     "evaluation_method": "api",
     "host": "141.212.115.116",
     "port": 8090,
-    "api_key": null
+    "api_key": null,
+    "country": "United States"
   }
