@@ -34,7 +34,7 @@ ENV UV_LINK_MODE=copy \
 RUN mkdir -p "${XDG_RUNTIME_DIR}" /runs
 
 # Copy project metadata and code.
-COPY pyproject.toml uv.lock README.md LICENSE ./
+COPY pyproject.toml uv.lock README.md LICENSE LICENSE_GEMMA.txt ./
 COPY src ./src
 COPY docs ./docs
 COPY scripts ./scripts

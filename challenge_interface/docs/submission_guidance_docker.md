@@ -35,17 +35,40 @@ Upload your model checkpoint(s) somewhere the organizers can download them.
 
 ### 4) Build the Docker image
 
-We provide a `docs/cvpr_challenge/Dockerfile` example.
+We provide a `challenge_interface/docs/Dockerfile` example.
 
 You may edit it to include any additional dependencies your policy requires, or use your own Dockerfile.
 
 Build the Docker image:
 
 ```bash
-docker build -f docs/cvpr_challenge/Dockerfile -t <my_cool_model_name>:latest .
+docker build -f challenge_interface/docs/Dockerfile -t <my_cool_model_name>:latest .
 ```
 
-### 5) Push the Docker image to a registry
+
+### 5) Self-check locally with the benchmark eval client
+
+1) Run your container locally (maps the server port):
+
+```bash
+docker run --rm -it --gpus all \
+  -e NVIDIA_DRIVER_CAPABILITIES=compute,graphics,utility,video \
+  -v "$PWD/runs:/app/runs" \
+  -p 8001:8001 \
+  my_cool_model_name:latest
+```
+We put all the model ckpts under the `runs` directory.
+
+2) Inside the container, start the policy server using your modified `deploy.py`.
+
+3) From another terminal, run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/challenge_inteface/scripts/phase1_eval.py) against your server:
+
+```
+cd robomme_benchmark
+uv run python -m  challenge_inteface.scripts.phase1_eval --port 8001
+```
+
+### 6) Push the Docker image to a registry
 
 Push your image to a registry so the organizers can pull it from Docker Hub.
 
@@ -57,28 +80,6 @@ docker push <dockerhub_user>/<my_cool_model_name>:latest
 
 For example, organizers pushed an image for [framesamp+modul](https://hub.docker.com/repository/docker/yinpeidai/my_cool_model_name/general) to Docker Hub.
 
-
-
-### 6) Self-check locally with the benchmark eval client
-
-1) Run your container locally (maps the server port):
-
-```bash
-docker run --rm -it --gpus all \
-  -e NVIDIA_DRIVER_CAPABILITIES=compute,graphics,utility,video \
-  -v "$PWD/<model_ckpt_path>:/app/<model_ckpt_path>" \
-  -p 8001:8001 \
-  my_cool_model_name:latest
-```
-
-2) Inside the container, start the policy server using your modified `deploy.py`.
-
-3) From another terminal, run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/challenge_inteface/scripts/phase1_eval.py) against your server:
-
-```
-cd robomme_benchmark
-uv run python -m  challenge_inteface.scripts.phase1_eval --port 8001
-```
 
 ### 7) Submit on EvalAI
 
