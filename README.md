@@ -11,6 +11,7 @@
 - [Installation](#installation)
   - [Install with uv](#install-with-uv)
   - [Install with docker](#install-with-docker)
+- [QuickStart](#quickstart)
 - [Repository Structure](#repository-structure)
 - [Download](#download)
   - [Download Training Data](#download-training-data)
@@ -61,6 +62,25 @@ We use separate environments for VLA training/inference and the RoboMME simulato
 After downloading the data in the `data` directory and setting up `runs` in the following structure.  
 Update the RoboMME submodule with `git submodule update --init`.
 Then build the Docker image following [this](docs/docker_installation.md).
+
+## QuickStart
+After install everyhing correctly, download our best MME-VLA model (framesamp-modul) from huggingface
+```
+git clone https://huggingface.co/Yinpei/perceptual-framesamp-modul <your_specifi_model_path>
+
+```
+Then run
+```
+# terminal 0
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8000 policy:checkpoint --policy.dir=<your_specifi_model_path>/79999 --policy.config=mme_vla_suite
+
+# terminal 1 
+micromamba activate robomme
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8000 --args.policy_name=<your_specifi_policy_name> --args.model_ckpt_id=79999
+```
+Then the evaluations results will be stored in `runs/evaluation/<your_specifi_policy_name>/ckpt79999/seed7`
+
+
 
 ## Repository Structure
 ```
@@ -236,19 +256,14 @@ Details are provided [here](docs/manual_evaluation.md).
 
 ## RoboMME Challenge
 
-Move to the `cvpr26challenge` branch at this repo.
-```
-git checkout cvpr26challenge
-```
-
-We provide a policy-serving example based on our MME-VLA (FrameSamp+Modul) for the [RoboMME Challenge](https://robomme.github.io/challenge.html) evaluation.
+We provide a policy-serving example in the [`challenge_interface`](challenge_interface) directory for [RoboMME Challenge](https://robomme.github.io/challenge.html) submission.
 
 We offer two ways for model submission:
 
 1. **Docker-based submission**: see details [here](challenge_interface/docs/submission_guidance_docker.md).
 2. **Remote (WebSocket) submission**: see details [here](challenge_interface/docs/submission_guidance_remote.md).
 
-We highly recommend readers first fully understand the MME-VLA policy learning pipeline before dive into this section.
+We highly recommend that you first fully understand the MME-VLA policy learning pipeline before diving into this section.
 
 
 ## Troubleshooting

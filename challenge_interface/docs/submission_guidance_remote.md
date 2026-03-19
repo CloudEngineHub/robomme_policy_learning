@@ -1,4 +1,4 @@
-## RoboMME Challenge: Remote API Submission Guide
+## RoboMME Challenge Guide: Remote API Submission
 
 This document explains how to serve your policy **from your own machine** (no Docker image submission) and submit a **public host + port** to EvalAI for CVPR challenge evaluation.
 

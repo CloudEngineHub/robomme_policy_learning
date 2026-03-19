@@ -39,6 +39,7 @@ COPY src ./src
 COPY docs ./docs
 COPY scripts ./scripts
 COPY packages ./packages
+COPY challenge_interface ./challenge_interface
 # COPY third_party ./third_party
 # COPY examples ./examples
 
