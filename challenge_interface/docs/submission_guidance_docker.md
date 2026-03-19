@@ -2,32 +2,39 @@
 
 This document explains how to package your policy into a Docker image that the organizers can pull and run for CVPR challenge evaluation.
 
+We use a MME-VLA (framesamp+modul) as an example to walk you through.
+
 ### What you (participant) provide
 
 - **A Docker image** containing your policy server code and all dependencies.
 - **A checkpoint location** that the organizers can download (e.g., a Hugging Face repo).
-- **One command** to start your policy server inside the container (including port and checkpoint path).
+- **One command** to start your policy server inside the container.
+e.g. `python challenge_serve_policy.py --port 8001 --checkpoint-dir <my_cool_model_name>`
 
 ### 1) Implement the policy interface
 
-Implement a `Policy` class compatible with the challenge interface.
+Implement the `Policy` class compatible with the challenge [interface](https://github.com/RoboMME/robomme_benchmark/blob/edc8e8008718d9bf545cfcc2dd3dc2264c903239/src/remote_evaluation/policy.py#L23).
 
-- Copy the benchmark interface directory (`remote_evaluation/`) into your repo (as done in `src/mme_vla_suite/remote_evaluation`):
-  - `https://github.com/RoboMME/robomme_benchmark/tree/main/src/remote_evaluation`
-- Override **`infer`** and **`reset`** in your policy implementation (example: `MyPolicy_for_CVPR_Challenge` in `src/mme_vla_suite/remote_evaluation/policy.py`).
+- Copy the [`challenge_inteface/` directory](`https://github.com/RoboMME/robomme_benchmark/tree/main/src/challenge_inteface) from benchamrk repo into your repo. 
 
-### 2) Prepare the serving entrypoint
+  e.g. we copy it to `src/mme_vla_suite/challenge_inteface` in this repo.
 
-Copy and adapt the benchmark serving script into your repo:
+- Override **`infer`** and **`reset`** in your policy implementation 
+  
+   e.g, we wrap up the original MME-VLA policy into [`MyPolicy_for_CVPR_Challenge]() class in `src/mme_vla_suite/remote_evaluation/policy.py`.
 
-- Reference: `https://github.com/RoboMME/robomme_benchmark/blob/main/scripts/challenge_serve_policy.py`
-- In this repo, the entrypoint lives at `scripts/challenge_serve_policy.py`.
+### 2) Prepare the serving script
+
+Copy the official policy serveing [script](https://github.com/RoboMME/robomme_benchmark/blob/main/scripts/challenge_serve_policy.py) and adjust it for you policy.
+
+e.g.,  In this repo, we modified and save to `scripts/challenge_serve_policy.py`.
 
 When you submit on EvalAI, provide a command like:
 
 ```bash
-uv run ./scripts/challenge_serve_policy.py --checkpoint-dir my_cool_model_name/79999
+uv run ./scripts/challenge_serve_policy.py --checkpoint-dir <my_cool_model_name> ...
 ```
+which will be used for the organizers to deploy your model(s). 
 
 ### 3) Upload your checkpoint(s)
 
@@ -37,25 +44,27 @@ Upload your model checkpoint(s) somewhere the organizers can download them (e.g.
 
 ### 4) Build the Docker image
 
-From the repo root:
+We provide a `docs/cvpr_challenge/Dockerfile` example.
+
+You may edit to include any additional dependencies your policy requires or use your own dockerfile.
+
+Build the docker image
 
 ```bash
 docker build -f docs/cvpr_challenge/Dockerfile -t my_cool_model_name:latest .
 ```
 
-You may edit `docs/cvpr_challenge/Dockerfile` to include any additional dependencies your policy requires.
-
 ### 5) Push the Docker image to a registry
 
-Push your image to a registry so the organizers/EvalAI can pull it (Docker Hub / GHCR / private registry).
-
-Example (Docker Hub):
+Push your image to a registry so the organizers can pull it from Docker Hub.
 
 ```bash
 docker tag my_cool_model_name:latest <dockerhub_user>/my_cool_model_name:latest
 docker login
 docker push <dockerhub_user>/my_cool_model_name:latest
 ```
+
+For eaxmple, the organizers push a image for [framesamp+modul](https://hub.docker.com/repository/docker/yinpeidai/my_cool_model_name/general) to docker pub 
 
 ### 6) Submit on EvalAI
 
@@ -80,7 +89,7 @@ docker run --rm -it --gpus all \
   my_cool_model_name:latest
 ```
 
-2) Inside the container, start the policy server using your provided command.
+2) Inside the container, start the policy server using your modified `scripts/challenge_serve_policy.py`
 
 3) From another terminal, run the benchmark eval client against your server:
 

@@ -24,13 +24,14 @@
 - [Evaluation](#evaluation)
   - [Evaluation with the integrated script](#evaluation-with-the-integrated-script)
   - [Manual evaluation (per model)](#manual-evaluation-per-model)
-  - [RoboMME Challenge Evaluation](#robomme-challenge-evaluation)
+- [RoboMME Challenge](#robomme-challenge)
 - [Troubleshooting](#troubleshooting)
 - [Acknowledgement](#acknowledgement)
 - [Citation](#citation)
 
 ## Updates
 
+- [03/2026] We provide MME-VLA as a submission example for CVPR RoboMME Challenge. More detailes can be found [here](#robomme-challenge).
 - [03/2026] 🚀 We release MME-VLA Suite, a family of memory-augmented vision-language-action (VLA) models based on the $\pi_{0.5}$ backbone. See our [paper](https://arxiv.org/abs/2603.04639) and [leaderboard](https://robomme.github.io/leaderboard.html) for more details and analysis.
 
 
@@ -233,11 +234,21 @@ Running `eval.sh` automatically starts two tmux windows: one for the policy serv
 Details are provided [here](docs/manual_evaluation.md).
 
 
-### RoboMME Challenge Evaluation 
-We provide an policy serving example using our MME-VLA (framesamp+modul) for [RoboMME Challenge](https://robomme.github.io/challenge.html) evaluation. We offer two ways for model submission:
+## RoboMME Challenge
 
-1. Using docker. See more details [here](docs/cvpr_challenge/submission_guidance_docker.md)
-2. Using Websocket for remote evaluation. See more details [here](docs/cvpr_challenge/submission_example_remote.md)
+Move to the `cvpr26challenge` branch at this repo.
+```
+git checkout cvpr26challenge
+```
+
+We provide a policy-serving example based on our MME-VLA (FrameSamp+Modul) for the [RoboMME Challenge](https://robomme.github.io/challenge.html) evaluation.
+
+We offer two ways for model submission:
+
+1. **Docker-based submission**: see details [here](challenge_interface/docs/submission_guidance_docker.md).
+2. **Remote (WebSocket) submission**: see details [here](challenge_interface/docs/submission_guidance_remote.md).
+
+We highly recommend readers first fully understand the MME-VLA policy learning pipeline before dive into this section.
 
 
 ## Troubleshooting

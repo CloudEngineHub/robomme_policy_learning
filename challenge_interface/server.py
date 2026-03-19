@@ -14,7 +14,6 @@ from .policy import Policy
 from . import msgpack_numpy
 
 
-
 class PolicyServer:
     """Serves a policy using the websocket protocol. See websocket_client_policy.py for a client implementation.
 

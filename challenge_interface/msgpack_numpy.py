@@ -1,6 +1,5 @@
 """
 Copied from https://github.com/Physical-Intelligence/openpi/blob/main/packages/openpi-client/src/openpi_client/msgpack_numpy.py
-
 """
 
 import functools

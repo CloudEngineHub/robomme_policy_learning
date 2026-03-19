@@ -1,9 +1,11 @@
-from mme_vla_suite.remote_evaluation.server import PolicyServer
+import argparse
 from mme_vla_suite.policies.policy_config import create_trained_policy
-from mme_vla_suite.remote_evaluation.policy import MyPolicy_for_CVPR_Challenge
 from pathlib import Path
 from mme_vla_suite.training.config import get_config
-import argparse
+
+
+from challenge_interface.server import PolicyServer
+from challenge_interface.policy import MyPolicy_for_CVPR_Challenge
 
 
 def parse_args() -> argparse.Namespace:

@@ -50,9 +50,9 @@ docker run --rm --gpus all nvidia/cuda:12.8.0-base-ubuntu24.04 nvidia-smi
 From the repository root:
 
 ```bash
-docker build -t mme_vla:cuda12.8 .
+docker build -t <image_name>:<tag> .
+# e.g., run `docker build -t mme_vla:cuda12.8 .`
 ```
-It will take around 10 mins to build the image.
 
 Enter the docker 
 ```bash
@@ -63,6 +63,10 @@ docker run --rm -it --gpus all \
   -p $PORT:$PORT \
   mme_vla:cuda12.8
 ```
+`-e` sets an environment variable inside the container (e.g., `NVIDIA_DRIVER_CAPABILITIES`).  
+`-v` mounts a host path into the container (volume mount).    
+`-p` publishes a container port to a host port (port mapping).  
+
 
 Evaluate the policy
 ```
@@ -76,15 +80,18 @@ CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --arg
 ```
 
 
-## 4) Others
+## 4) Other Hints
 
 To stop the docker
 ```bash
 docker ps
 docker stop <container_id_or_name>
 ```
+Alternatively, inside the container shell you can stop the session with `exit` (or `Ctrl-D`).
 
 To rebuild the docker image
 ```bash
-docker build --no-cache -t mme_vla:cuda12.8 .
+docker build --no-cache -t <image_name>:<tag> .
 ```
+
+To detach from the running container (without stopping it), press `Ctrl-p` then `Ctrl-q`.
