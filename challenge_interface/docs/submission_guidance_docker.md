@@ -1,10 +1,10 @@
-## RoboMME Challenge Guide: Docker Submission
+# RoboMME Challenge Guide: Docker Submission
 
 This document explains how to package your policy into a Docker image that organizers can pull and run for CVPR challenge evaluation.
 
 We use an MME-VLA (framesamp+modul) model as an example.
 
-### What you (the participant) provide
+## What you (the participant) provide
 
 - **A Docker image** containing your policy server code and all dependencies.
 - **A checkpoint location** that the organizers can download.
@@ -98,7 +98,7 @@ An example JSON file can be found [here](eval_ai_submission_example_docker.json)
 
 ---
 
-### What the organizers will do
+## What the organizers will do
 
 1) **Pull your image** (based on the image name/tag you provided in EvalAI), for example:
 
