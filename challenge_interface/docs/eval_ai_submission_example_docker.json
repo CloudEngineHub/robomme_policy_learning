@@ -1,0 +1,12 @@
+{
+    "model_name": "perceptual-framesamp-modul",
+    "action_space": "joint_angle",
+    "use_depth": false,
+    "use_camera_params": false,
+    "email": "daiyp@umich.edu",
+    "evaluation_method": "docker",
+    "docker_image": "yinpeidai/perceptual-framesamp-modul",
+    "host": "141.212.115.116",
+    "port": 8001,
+    "api_key": null
+  }
