@@ -11,7 +11,7 @@ def parse_args() -> argparse.Namespace:
 
     parser.add_argument(
         "--host",
-        default="141.212.115.116",
+        default="0.0.0.0",
         help="Host/IP to bind the policy server (default: %(default)s).",
     )
     parser.add_argument(
@@ -19,6 +19,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=8001,
         help="Port to bind the policy server (default: %(default)s).",
+    )
+    parser.add_argument(
+        "--checkpoint-dir",
+        type=Path,
+        default=Path("my_cool_model"),
+        help="Path to the checkpoint directory (default: %(default)s).",
     )
 
     return parser.parse_args()
@@ -29,7 +35,7 @@ def main() -> None:
 
     model = create_trained_policy(
         train_config=get_config("mme_vla_suite"),
-        checkpoint_dir=Path("runs/ckpts/mme_vla_suite/perceptual-framesamp-modul/79999"),
+        checkpoint_dir=args.checkpoint_dir,
         seed=7,
     )
 

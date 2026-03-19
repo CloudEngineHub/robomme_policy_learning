@@ -1,5 +1,7 @@
 """
 Adapted from https://github.com/Physical-Intelligence/openpi/blob/main/src/openpi/serving/websocket_policy_server.py
+
+Participant do not need to modify this file
 """
 
 import asyncio
@@ -8,7 +10,7 @@ import traceback
 import websockets.asyncio.server as _server
 import websockets.frames
 
-from .policy import MyPolicy_for_CVPR_Challenge
+from .policy import Policy
 from . import msgpack_numpy
 
 
@@ -21,7 +23,7 @@ class PolicyServer:
 
     def __init__(
         self,
-        policy: MyPolicy_for_CVPR_Challenge,
+        policy: Policy,
         host: str = "0.0.0.0",
         port: int | None = None,
         metadata: dict | None = None,

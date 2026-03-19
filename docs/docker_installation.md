@@ -52,6 +52,8 @@ From the repository root:
 ```bash
 docker build -t mme_vla:cuda12.8 .
 ```
+It will take around 10 mins to build the image.
+
 Enter the docker 
 ```bash
 export PORT=8001

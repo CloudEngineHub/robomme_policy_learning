@@ -39,22 +39,22 @@ COPY src ./src
 COPY docs ./docs
 COPY scripts ./scripts
 COPY packages ./packages
-COPY third_party ./third_party
-COPY examples ./examples
+# COPY third_party ./third_party
+# COPY examples ./examples
 
 # Install the project (includes workspace deps like openpi-client) from the lockfile.
 RUN uv sync --frozen --no-dev --no-install-project --python 3.11
 
-# Install micromamba and set up a dedicated robomme env for evaluation.
-# This is only for evaluation, not for training.
-# You can comment out this section if you don't need to evaluate the policies.
-RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba -O > /usr/local/bin/micromamba \
-    && chmod +x /usr/local/bin/micromamba \
-    && micromamba create -y -n robomme python=3.11 \
-    && micromamba run -n robomme pip install -r examples/robomme/requirements.txt \
-    && micromamba run -n robomme pip install -e third_party/robomme_benchmark \
-    && micromamba run -n robomme pip install -e packages/openpi-client
+# # Install micromamba and set up a dedicated robomme env for evaluation.
+# # This is only for evaluation, not for training.
+# # You can comment out this section if you don't need to evaluate the policies.
+# RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba -O > /usr/local/bin/micromamba \
+#     && chmod +x /usr/local/bin/micromamba \
+#     && micromamba create -y -n robomme python=3.11 \
+#     && micromamba run -n robomme pip install -r examples/robomme/requirements.txt \
+#     && micromamba run -n robomme pip install -e third_party/robomme_benchmark \
+#     && micromamba run -n robomme pip install -e packages/openpi-client
 
-
-CMD ["micromamba", "run", "-n", "robomme", "bash"]
+# CMD ["micromamba", "run", "-n", "robomme", "bash"]
+CMD ["bash"]
 

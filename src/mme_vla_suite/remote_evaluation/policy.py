@@ -1,17 +1,16 @@
 """
+Participants need to modify this file
+
 This is a sample script about how to adapt a model into a remote evaluation policy for CVPR challenge.
 
 Basically, You need to implement the `step` and `reset` methods.
-
-
-Note that this is a different evaluation pipeline from the `packages/openpi-client` and
-`src/mme_vla_suite/serving/websocket_policy_server.py` implementation, which is developed mainly for MME-VLA-Suite it's own evaluation pipeline.
 """
 
 
 from typing import Any
 import numpy as np
 from mme_vla_suite.policies.policy import MME_VLA_Policy as _InnerMMEVLAPolicy
+from typing_extensions import override
 
 
 def pack_state(joint_state: np.ndarray, gripper_state: np.ndarray) -> np.ndarray:
@@ -19,7 +18,15 @@ def pack_state(joint_state: np.ndarray, gripper_state: np.ndarray) -> np.ndarray
     return np.concatenate([joint_state, gripper_state[:1]], axis=0, dtype=np.float32)
 
 
-class MyPolicy_for_CVPR_Challenge:
+class Policy:
+    def infer(self, inputs: dict):
+        raise NotImplementedError
+
+    def reset(self) -> None:
+        raise NotImplementedError
+
+
+class MyPolicy_for_CVPR_Challenge(Policy):
     """
     Adapter around the existing `MME_VLA_Policy` that exposes only the
     `infer` and `reset` interface required by the CVPR remote evaluation
@@ -28,25 +35,6 @@ class MyPolicy_for_CVPR_Challenge:
     This class does NOT change the original `MME_VLA_Policy` interface;
     it simply wraps an instance of it and forwards calls.
 
-    Expected usage pattern
-    ----------------------
-    The user constructs this class with the same arguments as
-    `MME_VLA_Policy` and then passes it to
-    `third_party/robomme_benchmark/src/remote_evaluation/server.PolicyServer`.
-
-    On each call to `infer`, this adapter can optionally update the
-    underlying memory buffer before calling the original policy's
-    `infer`:
-
-    - If the input dict contains keys compatible with
-      `MME_VLA_Policy.add_buffer` (i.e. `images`, `state`, and
-      optionally `exec_start_idx`), they will be forwarded once per
-      call to `add_buffer`.
-    - After that, the same `inputs` dict is passed to the wrapped
-      policy's `infer` method.
-
-    This keeps the external interface as `infer`/`reset` only, but
-    preserves the full original behavior internally.
     """
 
     def __init__(self, model: _InnerMMEVLAPolicy, **_: Any):
@@ -61,6 +49,7 @@ class MyPolicy_for_CVPR_Challenge:
         self._inner_policy = model
         self.chunk_size = 16
 
+    @override
     def infer(self, inputs: dict) -> dict:
         """
         Public `infer` interface expected by the CVPR server.
@@ -102,6 +91,7 @@ class MyPolicy_for_CVPR_Challenge:
         outputs = self._inner_policy.infer(element)
         return {"actions": outputs["actions"][:self.chunk_size, :]}
 
+    @override
     def reset(self) -> None:
         """Public `reset` interface simply forwards to the wrapped policy."""
         self._inner_policy.reset()
