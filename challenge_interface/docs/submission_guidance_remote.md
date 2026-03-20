@@ -13,7 +13,17 @@ Implement the `Policy` class compatible with the challenge [interface](https://g
 
 - Copy the [challenge_interface](https://github.com/RoboMME/robomme_benchmark/src/challenge_interface) directory from the benchmark repo into your repo.
 
-  e.g., in this repo, we copied the participant-facing files into the `challenge_interface` [directory](..).
+  e.g., in this repo, we copied the participant-oriented files into the `challenge_interface` [directory](..).
+
+  ```
+  challenge_interface
+  ├── __init__.py
+  ├── msgpack_numpy.py
+  ├── policy.py
+  ├── scripts
+  │   └── deploy.py
+  └── server.py
+  ```
 
 - Override **`infer`** and **`reset`** in your policy implementation.
   
@@ -21,14 +31,14 @@ Implement the `Policy` class compatible with the challenge [interface](https://g
 
 - Adjust `challenge_interface/scripts/deploy.py` for your own policy.
 
-  e.g., in this repo, we modified it for the `MyPolicy_for_CVPR_Challenge` class.
+  e.g., in this repo, we modified [it](https://github.com/RoboMME/robomme_policy_learning/challenge_interface/scripts/deploy.py#L54) for the `MyPolicy_for_CVPR_Challenge` class.
+
 
 
 ### 2) Deploy your model
 
-For example, you can deploy MME-VLA on a host machine with a public IP:
 ```
-CUDA_VISIBLE_DEVICES=0  uv run python -m  challenge_interface.scripts.deploy --port 8080  --checkpoint-dir xxx
+CUDA_VISIBLE_DEVICES=0  uv run python -m  challenge_interface.scripts.deploy --port <port>  --checkpoint-dir xxx
 ```
 You can deploy on your own server or a cloud machine, as long as it has a public IP.
 
@@ -37,8 +47,8 @@ You can deploy on your own server or a cloud machine, as long as it has a public
 Run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/challenge_interface/scripts/phase1_eval.py) to test your policy server:
 
 ```
-cd robomme_benchmark
-CUDA_VISIBLE_DEVICES=0  uv run python -m  challenge_interface.scripts.phase1_eval --port 8080
+cd <robomme_benchmark>
+uv run python -m challenge_interface.scripts.phase1_eval --port <port>
 ```
 
 
@@ -53,7 +63,7 @@ On EvalAI, submit a JSON file that includes:
 - **Host**
 - **Port**
 - **API key** (optional)
-- **Country**: where the host machine is located. We will choose nodes that are close to your host machine to reduce latency.
+- **Country/Area**: where the host machine is located. We will choose nodes that are close to your host machine to reduce latency.
 - Other fields: `use_depth`, `use_camera_params` (default: `false`)
 
 An example JSON file can be found [here](eval_ai_submission_example_remote.json).
