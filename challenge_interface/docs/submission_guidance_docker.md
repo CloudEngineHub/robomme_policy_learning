@@ -34,7 +34,7 @@ Implement the `Policy` class compatible with the challenge [interface](https://g
 
 - Adjust `challenge_interface/scripts/deploy.py` for your own policy.
 
-  e.g., in this repo, we modified it for the `MyPolicy_for_CVPR_Challenge` class.
+  e.g., in this repo, we modified [it](https://github.com/RoboMME/robomme_policy_learning/challenge_interface/scripts/deploy.py#L54) for the `MyPolicy_for_CVPR_Challenge` class.
 
 
 ### 2) Upload your checkpoint(s)
@@ -75,11 +75,11 @@ Map the server port and mount the direction correclty. Here we put all the model
 uv run python -m  challenge_interface.scripts.deploy --port <port> --checkpoint-dir <dir>
 ```
 
-3) From another terminal, run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/challenge_interface/scripts/phase1_eval.py) against your policy server:
+3) From another terminal, run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/challenge_interface/scripts/phase1_eval.py) outside the policy server container for evaluation.
 
 ```
-cd robomme_benchmark
-uv run python -m  challenge_interface.scripts.phase1_eval --port <port>
+cd <robomme_benchmark>
+uv run python -m challenge_interface.scripts.phase1_eval --port <port>
 ```
 
 ### 6) Push the Docker image to a registry
@@ -115,7 +115,9 @@ An example JSON file can be found [here](eval_ai_submission_example_docker.json)
 
 ## What the organizers will do
 
-1) **Pull your image** (based on the image name/tag you provided in EvalAI), for example:
+After we receive your submitted JSON file, we will
+
+1) **Pull your docker image** (based on the image name/tag you provided), for example:
 
 ```bash
 docker pull yinpeidai/perceptual-framesamp-modul:latest
@@ -127,7 +129,7 @@ docker pull yinpeidai/perceptual-framesamp-modul:latest
 git clone https://huggingface.co/YinpeiDai/perceptual-framesamp-modul runs/ckpts/perceptual-framesamp-modul
 ```
 
-3) **Run your container** (with a port mapping), for example:
+3) **Run your container**, for example:
 
 ```bash
 docker run --rm -it --gpus all \
@@ -137,13 +139,13 @@ docker run --rm -it --gpus all \
   yinpeidai/perceptual-framesamp-modul:latest
 ```
 
-Then, inside the container, start the policy server using the participant-provided command, for example:
+Then, inside the container, start the policy server based on your provided command, for example:
 
 ```bash
 uv run python -m  challenge_interface.scripts.deploy --port 8001 --checkpoint-dir runs/ckpts/perceptual-framesamp-modul/79999
 ```
 
-4) **Run evaluation** (phase 1), using the script from the RoboMME benchmark repo:
+4) **Run evaluation** (phase 1), using the eval script from the RoboMME benchmark repo:
 
 ```bash
 cd robomme_benchmark

@@ -62,6 +62,8 @@ An example JSON file can be found [here](eval_ai_submission_example_remote.json)
 
 ## What the organizers will do
 
+After we receive your submitted JSON file, we will
+
 1) Connect to your submitted endpoint:
 
 - `<your_public_host_or_ip>:<port>`

@@ -3,8 +3,8 @@ This is used by participants to serve their policy.
 
 Participants may need to modify this file to adapt to their own policy. for example, loading multiple model ckpts.
 
-And provide an example usage here if using docker submission:
-e.g, 
+Provide an example usage here if using docker submission:
+
 uv run python -m  challenge_interface.scripts.deploy --checkpoint-dir perceptual-framesamp-modul/79999
 """
 
