@@ -8,6 +8,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ffmpeg \
     git \
+    git-lfs \
+    zip \
+    unzip \
+    tar \
     libegl1 \
     tmux \
     libgl1 \

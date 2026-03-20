@@ -25,7 +25,7 @@
 - [Evaluation](#evaluation)
   - [Evaluation with the integrated script](#evaluation-with-the-integrated-script)
   - [Manual evaluation (per model)](#manual-evaluation-per-model)
-- [RoboMME Challenge](#robomme-challenge)
+- [RoboMME Challenge Example](#robomme-challenge-example)
 - [Troubleshooting](#troubleshooting)
 - [Acknowledgement](#acknowledgement)
 - [Citation](#citation)
@@ -59,26 +59,26 @@ We use separate environments for VLA training/inference and the RoboMME simulato
 
 
 ### Install with Docker
-After downloading the data in the `data` directory and setting up `runs` in the following structure.  
+After [downloading the data](#download) in the `data` directory and setting up `runs` in the following [structure](#repository-structure). 
 Update the RoboMME submodule with `git submodule update --init`.
 Then build the Docker image following [this](docs/docker_installation.md).
 
 ## QuickStart
-After install everyhing correctly, download our best MME-VLA model (framesamp-modul) from huggingface
+After install everyhing correctly, download our best MME-VLA model (i.e., framesamp-modul) from huggingface
 ```
-git clone https://huggingface.co/Yinpei/perceptual-framesamp-modul <your_specifi_model_path>
-
+git clone https://huggingface.co/Yinpei/perceptual-framesamp-modul <your_specify_model_path>
 ```
 Then run
 ```
 # terminal 0
-CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8000 policy:checkpoint --policy.dir=<your_specifi_model_path>/79999 --policy.config=mme_vla_suite
+CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=8000 policy:checkpoint --policy.dir=<your_specify_model_path>/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
 micromamba activate robomme
-CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8000 --args.policy_name=<your_specifi_policy_name> --args.model_ckpt_id=79999
+CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=8000 --args.policy_name=<your_specify_policy_name> --args.model_ckpt_id=79999
 ```
-Then the evaluations results will be stored in `runs/evaluation/<your_specifi_policy_name>/ckpt79999/seed7`
+Then the evaluations results will be stored in `runs/evaluation/<your_specify_policy_name>/ckpt79999/seed7`
+> Remember to manually set CUDA_VISIBLE_DEVICES using one card for serve_policy.py, as JAX will automatically use all GPUs by default.
 
 
 
@@ -254,7 +254,7 @@ Running `eval.sh` automatically starts two tmux windows: one for the policy serv
 Details are provided [here](docs/manual_evaluation.md).
 
 
-## RoboMME Challenge
+## RoboMME Challenge Example
 
 We provide a policy-serving example in the [`challenge_interface`](challenge_interface) directory for [RoboMME Challenge](https://robomme.github.io/challenge.html) submission.
 

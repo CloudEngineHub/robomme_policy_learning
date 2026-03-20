@@ -3,7 +3,7 @@
 This guide sets up Docker and NVIDIA GPU support so you can build and run the MME-VLA image.
 
 ## 1) Install Docker Engine 
-> Skip this if you already installed docker.
+> Skip this if you already installed Docker.
 
 Follow Docker’s official instructions for Ubuntu:
 - Docker Engine install guide: `https://docs.docker.com/engine/install/ubuntu/`
@@ -54,7 +54,7 @@ docker build -t <image_name>:<tag> .
 # e.g., run `docker build -t mme_vla:cuda12.8 .`
 ```
 
-Enter the docker 
+Start the container:
 ```bash
 export PORT=8001
 docker run --rm -it --gpus all \
@@ -64,8 +64,27 @@ docker run --rm -it --gpus all \
   mme_vla:cuda12.8
 ```
 `-e` sets an environment variable inside the container (e.g., `NVIDIA_DRIVER_CAPABILITIES`).  
-`-v` mounts a host path into the container (volume mount).    
+`-v` mounts a host path into the container as a **bind mount**. Here we mount the host `./runs` and `./data` directories to `/app/runs` and `/app/data` inside the container.
+
+Because these are bind mounts, files you create/modify inside the container will be visible to you on the host (and vice versa) as they are the same underlying directories.
 `-p` publishes a container port to a host port (port mapping).  
+
+> **Permissions note:** this image runs as `root` by default, so any *new* files created in the mounted `runs/` or `data/` dirs will become `root`-owned on the host.
+>
+> To fix ownership on the host (run outside the container):
+> `sudo chown -R "$USER:$USER" runs data`
+>
+> Alternatively, run the container as your UID/GID to keep created files owned by you:
+> ```bash
+> docker run --rm -it --gpus all \
+>   --user "$(id -u):$(id -g)" \
+>   -e NVIDIA_DRIVER_CAPABILITIES=compute,graphics,utility,video \
+>   -v "$PWD/runs:/app/runs" -v "$PWD/data:/app/data" \
+>   -p $PORT:$PORT \
+>   mme_vla:cuda12.8
+> ```
+> If you use `--user`, `apt-get update` inside the container may fail because non-root users typically can’t write to `/var/lib/apt`.
+
 
 
 Evaluate the policy
@@ -82,16 +101,33 @@ CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --arg
 
 ## 4) Other Hints
 
-To stop the docker
+To stop the container
 ```bash
 docker ps
 docker stop <container_id_or_name>
 ```
 Alternatively, inside the container shell you can stop the session with `exit` (or `Ctrl-D`).
 
-To rebuild the docker image
+To rebuild the Docker image
 ```bash
 docker build --no-cache -t <image_name>:<tag> .
 ```
 
 To detach from the running container (without stopping it), press `Ctrl-p` then `Ctrl-q`.
+
+To re-attach the session:
+```bash 
+docker ps
+docker exec -it <container_id_or_name> bash
+```
+
+To start a detached container directly, use `-d`:
+```
+docker run -d --rm -it --gpus all ...
+```
+
+To install additional packages inside the container, run:
+```
+apt-get update
+apt-get install <package>
+```
