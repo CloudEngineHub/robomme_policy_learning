@@ -12,11 +12,21 @@ We use an MME-VLA (framesamp+modul) model as an example.
 
 ### 1) Implement the policy interface and serving script
 
-Implement the `Policy` class compatible with the challenge [interface](https://github.com/RoboMME/robomme_benchmark/blob/edc8e8008718d9bf545cfcc2dd3dc2264c903239/src/remote_evaluation/policy.py#L23).
+Implement the `Policy` class compatible with the challenge [interface](https://github.com/RoboMME/robomme_benchmark/src/remote_evaluation/policy.py#L23).
 
-- Copy the [challenge_inteface](https://github.com/RoboMME/robomme_benchmark/src/challenge_inteface) directory from the benchmark repo into your repo.
+- Copy the [challenge_interface](https://github.com/RoboMME/robomme_benchmark/src/challenge_interface) directory from the benchmark repo into your repo.
 
-  e.g., in this repo, we copied the participant-facing files into the `challenge_inteface` [directory](..).
+  e.g., in this repo, we copied the participant-oriented files into the `challenge_interface` [directory](..).
+
+  ```
+  challenge_interface
+  ├── __init__.py
+  ├── msgpack_numpy.py
+  ├── policy.py
+  ├── scripts
+  │   └── deploy.py
+  └── server.py
+  ```
 
 - Override **`infer`** and **`reset`** in your policy implementation.
   
@@ -31,7 +41,7 @@ Implement the `Policy` class compatible with the challenge [interface](https://g
 
 Upload your model checkpoint(s) somewhere the organizers can download them.
 
-- For example, we uploaded the framesamp+modul MME-VLA model to `https://huggingface.co/Yinpei/perceptual-framesamp-modul`.
+- For example, we uploaded the framesamp+modul MME-VLA model to [huggingface](https://huggingface.co/Yinpei/perceptual-framesamp-modul).
 
 ### 4) Build the Docker image
 
@@ -48,24 +58,28 @@ docker build -f challenge_interface/docs/Dockerfile -t <my_cool_model_name>:late
 
 ### 5) Self-check locally with the benchmark eval client
 
-1) Run your container locally (maps the server port):
+1) Run your container locally:
 
 ```bash
 docker run --rm -it --gpus all \
   -e NVIDIA_DRIVER_CAPABILITIES=compute,graphics,utility,video \
-  -v "$PWD/runs:/app/runs" \
-  -p 8001:8001 \
+  -v "$PWD/<dir>:/app/<dir>" \
+  -p <port>:<port> \
   my_cool_model_name:latest
 ```
-We put all the model ckpts under the `runs` directory.
+Map the server port and mount the direction correclty. Here we put all the model ckpts under the `runs` directory and use port 8001.
 
 2) Inside the container, start the policy server using your modified `deploy.py`.
+```
+# Inside the container
+uv run python -m  challenge_interface.scripts.deploy --port <port> --checkpoint-dir <dir>
+```
 
-3) From another terminal, run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/challenge_inteface/scripts/phase1_eval.py) against your server:
+3) From another terminal, run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/challenge_interface/scripts/phase1_eval.py) against your policy server:
 
 ```
 cd robomme_benchmark
-uv run python -m  challenge_inteface.scripts.phase1_eval --port 8001
+uv run python -m  challenge_interface.scripts.phase1_eval --port <port>
 ```
 
 ### 6) Push the Docker image to a registry
@@ -133,7 +147,7 @@ uv run python -m  challenge_interface.scripts.deploy --port 8001 --checkpoint-di
 
 ```bash
 cd robomme_benchmark
-uv run ./scripts/challenge_eval_policy.py --port 8001
+uv run python -m  challenge_interface.scripts.phase1_eval --port 8001 --action_space joint_angle --team_id 0000
 ```
 
 After determining the top 5–10 teams, the organizers will run phase 2 evaluation.
