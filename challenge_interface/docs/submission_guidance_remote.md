@@ -38,7 +38,7 @@ Implement the `Policy` class compatible with the challenge [interface](https://g
 ### 2) Deploy your model
 
 ```
-CUDA_VISIBLE_DEVICES=0  uv run python -m  challenge_interface.scripts.deploy --port <port>  --checkpoint-dir xxx
+CUDA_VISIBLE_DEVICES=0  uv run python -m  challenge_interface.scripts.deploy --transport <type> --port <port> --checkpoint-dir xxx
 ```
 You can deploy on your own server or a cloud machine, as long as it has a public IP.
 

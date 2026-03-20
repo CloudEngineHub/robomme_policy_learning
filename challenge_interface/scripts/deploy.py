@@ -15,11 +15,19 @@ from mme_vla_suite.training.config import get_config
 
 
 from challenge_interface.server import PolicyServer
+from challenge_interface.server_http import PolicyHTTPServer
 from challenge_interface.policy import MyPolicy_for_CVPR_Challenge
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Serve a policy for the CVPR challenge.")
+    parser.add_argument(
+        "--transport",
+        type=str,
+        choices=("websocket", "http"),
+        default="websocket",
+        help="Server transport to use (default: %(default)s).",
+    )
 
     parser.add_argument(
         "--host",
@@ -52,8 +60,11 @@ def main() -> None:
     )
 
     policy = MyPolicy_for_CVPR_Challenge(model=model)
-    server = PolicyServer(policy, host=args.host, port=args.port)
-    server.serve_forever()
+    if args.transport == "http":
+        policy_server = PolicyHTTPServer(policy, host=args.host, port=args.port)
+    else:
+        policy_server = PolicyServer(policy, host=args.host, port=args.port)
+    policy_server.serve_forever()
 
 
 if __name__ == "__main__":
