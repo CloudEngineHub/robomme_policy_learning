@@ -48,7 +48,7 @@ Run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/cha
 
 ```
 cd <robomme_benchmark>
-uv run python -m challenge_interface.scripts.phase1_eval --port <port>
+uv run python -m challenge_interface.scripts.phase1_eval --port <port> --transport <type>
 ```
 
 
@@ -63,6 +63,7 @@ On EvalAI, submit a JSON file that includes:
 - **Host**
 - **Port**
 - **API key** (optional)
+- **Transport**: Websocket or HTTP
 - **Country/Area**: where the host machine is located. We will choose nodes that are close to your host machine to reduce latency.
 - Other fields: `use_depth`, `use_camera_params` (default: `false`)
 
@@ -83,7 +84,7 @@ After we receive your submitted JSON file, we will
 For example:
 ```bash
 cd robomme_benchmark
-uv run python -m  challenge_interface.scripts.phase1_eval --host <your_public_ip_or_dns> --port <your_public_port>
+uv run python -m  challenge_interface.scripts.phase1_eval --host <your_public_ip_or_dns> --port <your_public_port> --transport <type>
 ```
 
 Keep your endpoint stable during the evaluation period.
