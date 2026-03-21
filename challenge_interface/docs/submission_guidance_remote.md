@@ -44,11 +44,11 @@ You can deploy on your own server or a cloud machine, as long as it has a public
 
 ### 3) Self-check locally with the benchmark eval client
 
-Run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/challenge_interface/scripts/phase1_eval.py) to test your policy server:
+Go to another machine, and run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/challenge_interface/scripts/phase1_eval.py) to test your policy server:
 
 ```
 cd <robomme_benchmark>
-uv run python -m challenge_interface.scripts.phase1_eval --port <port> --transport <type>
+uv run python -m challenge_interface.scripts.phase1_eval --host <your_deployed_ip_or_dns>  --port <your_public_port> --transport <type>
 ```
 
 
@@ -84,7 +84,7 @@ After we receive your submitted JSON file, we will
 For example:
 ```bash
 cd robomme_benchmark
-uv run python -m  challenge_interface.scripts.phase1_eval --host <your_public_ip_or_dns> --port <your_public_port> --transport <type>
+uv run python -m  challenge_interface.scripts.phase1_eval --host <your_deployed_ip_or_dns> --port <your_public_port> --transport <type>
 ```
 
 Keep your endpoint stable during the evaluation period.
