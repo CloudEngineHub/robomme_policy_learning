@@ -95,11 +95,11 @@ docker push <dockerhub_user>/<my_cool_model_name>:latest
 For example, organizers pushed an image for [framesamp+modul](https://hub.docker.com/repository/docker/yinpeidai/my_cool_model_name/general) to Docker Hub.
 
 
-### 7) Submit on EvalAI
+### 7) Submit your policy 
 
-On EvalAI, submit a JSON file that includes:
+Prepare the following information
 
-- **model_name**
+- **policy_name**
 - **email**
 - **action_space**: you can only choose one from "joint_angle", "ee_pose", "waypoint".
 - **evaluation_method**: set as `docker`.

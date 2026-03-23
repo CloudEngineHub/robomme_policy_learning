@@ -258,10 +258,11 @@ Details are provided [here](docs/manual_evaluation.md).
 
 We provide a policy-serving example in the [`challenge_interface`](challenge_interface) directory for [RoboMME Challenge](https://robomme.github.io/challenge.html) submission.
 
-We offer two ways for model submission:
+We offer threee ways for model submission:
 
 1. **Docker-based submission**: see details [here](challenge_interface/docs/submission_guidance_docker.md).
-2. **Remote (WebSocket) submission**: see details [here](challenge_interface/docs/submission_guidance_remote.md).
+2. **Remote API submission**: see details [here](challenge_interface/docs/submission_guidance_remote.md).
+3. **Github Repo submission**: we will git clone your repo, install the environment, and run the policy server on our machine.
 
 We highly recommend that you first fully understand the MME-VLA policy learning pipeline before diving into this section.
 

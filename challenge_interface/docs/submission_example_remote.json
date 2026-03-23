@@ -8,6 +8,5 @@
     "host": "141.212.115.116",
     "port": 8090,
     "api_key": null,
-    "transport": "websocket",
-    "country/area": "United States"
+    "transport": "websocket"
   }
