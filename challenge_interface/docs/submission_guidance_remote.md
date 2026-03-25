@@ -5,13 +5,13 @@ This document explains how to serve your policy **from your own machine** (no Do
 ## What you (the participant) provide
 
 - **A reachable policy server endpoint**: `<public_host_or_ip>:<port>`
-- (Optional) **API key** for verification. We will include it in the [header](https://github.com/RoboMME/robomme_benchmark/challenge_interface/client.py#L35).
+- (Optional) **API key** for verification. We will include it in the [header](https://github.com/RoboMME/robomme_benchmark/blob/main/challenge_interface/client.py#L35).
 
 ### 1) Implement the policy interface and serving script
 
-Implement the `Policy` class compatible with the challenge [interface](https://github.com/RoboMME/robomme_benchmark/blob/edc8e8008718d9bf545cfcc2dd3dc2264c903239/src/remote_evaluation/policy.py#L23).
+Implement the `Policy` class compatible with the challenge [interface](https://github.com/RoboMME/robomme_benchmark/blob/main/challenge_interface/policy.py#L12).
 
-- Copy the [challenge_interface](https://github.com/RoboMME/robomme_benchmark/src/challenge_interface) directory from the benchmark repo into your repo.
+- Copy the [challenge_interface](https://github.com/RoboMME/robomme_benchmark/tree/main/challenge_interface) directory from the benchmark repo into your repo.
 
   e.g., in this repo, we copied the participant-oriented files into the `challenge_interface` [directory](..).
 
@@ -27,11 +27,11 @@ Implement the `Policy` class compatible with the challenge [interface](https://g
 
 - Override **`infer`** and **`reset`** in your policy implementation.
   
-  e.g., we wrapped the original MME-VLA policy in the [`MyPolicy_for_CVPR_Challenge`](https://github.com/RoboMME/robomme_policy_learning/challenge_interface/policy.py#L29) class for this challenge.
+  e.g., we wrapped the original MME-VLA policy in the [`MyPolicy_for_CVPR_Challenge`](https://github.com/RoboMME/robomme_policy_learning/blob/main/challenge_interface/policy.py#L29) class for this challenge.
 
 - Adjust `challenge_interface/scripts/deploy.py` for your own policy.
 
-  e.g., in this repo, we modified [it](https://github.com/RoboMME/robomme_policy_learning/challenge_interface/scripts/deploy.py#L54) for the `MyPolicy_for_CVPR_Challenge` class.
+  e.g., in this repo, we modified into [this](https://github.com/RoboMME/robomme_policy_learning/blob/main/challenge_interface/scripts/deploy.py#L53) for the `MyPolicy_for_CVPR_Challenge` class.
 
 
 
@@ -44,7 +44,7 @@ You can deploy on your own server or a cloud machine, as long as it has a public
 
 ### 3) Self-check locally with the benchmark eval client
 
-Go to another machine, and run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/challenge_interface/scripts/phase1_eval.py) to test your policy server:
+Go to another machine, and run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/blob/main/challenge_interface/scripts/phase1_eval.py) to test your policy server:
 
 ```
 cd <robomme_benchmark>
@@ -67,7 +67,7 @@ Prepare the following information:
 - **Country/Area**: where the host machine is located. We will choose nodes that are close to your host machine to reduce latency.
 - Other fields: `use_depth`, `use_camera_params` (default: `false`)
 
-An example JSON file can be found [here](eval_ai_submission_example_remote.json).
+An example JSON file can be found [here](https://github.com/RoboMME/robomme_policy_learning/blob/main/challenge_interface/docs/submission_example_remote.json).
 
 ---
 

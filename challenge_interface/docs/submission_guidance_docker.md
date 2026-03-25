@@ -12,9 +12,9 @@ We use an MME-VLA (framesamp+modul) model as an example.
 
 ### 1) Implement the policy interface and serving script
 
-Implement the `Policy` class compatible with the challenge [interface](https://github.com/RoboMME/robomme_benchmark/src/remote_evaluation/policy.py#L23).
+Implement the `Policy` class compatible with the challenge [interface](https://github.com/RoboMME/robomme_benchmark/blob/a2ad6f6a09bf117167cef3237f6ac6ecba418307/challenge_interface/policy.py#L12).
 
-- Copy the [challenge_interface](https://github.com/RoboMME/robomme_benchmark/src/challenge_interface) directory from the benchmark repo into your repo.
+- Copy the [challenge_interface](https://github.com/RoboMME/robomme_benchmark/tree/main/challenge_interface) directory from the benchmark repo into your repo.
 
   e.g., in this repo, we copied the participant-oriented files into the `challenge_interface` [directory](..).
 
@@ -30,11 +30,11 @@ Implement the `Policy` class compatible with the challenge [interface](https://g
 
 - Override **`infer`** and **`reset`** in your policy implementation.
   
-  e.g., we wrapped the original MME-VLA policy in the [`MyPolicy_for_CVPR_Challenge`](https://github.com/RoboMME/robomme_policy_learning/challenge_interface/policy.py#L29) class for this challenge.
+  e.g., we wrapped the original MME-VLA policy in the [`MyPolicy_for_CVPR_Challenge`](https://github.com/RoboMME/robomme_policy_learning/blob/main/challenge_interface/policy.py#L29) class for this challenge.
 
 - Adjust `challenge_interface/scripts/deploy.py` for your own policy.
 
-  e.g., in this repo, we modified [it](https://github.com/RoboMME/robomme_policy_learning/challenge_interface/scripts/deploy.py#L54) for the `MyPolicy_for_CVPR_Challenge` class.
+  e.g., in this repo, we modified into [this](https://github.com/RoboMME/robomme_policy_learning/blob/main/challenge_interface/scripts/deploy.py#L53) for the `MyPolicy_for_CVPR_Challenge` class.
 
 
 ### 2) Upload your checkpoint(s)
@@ -75,7 +75,7 @@ Map the server port and mount the direction correclty. Here we put all the model
 uv run python -m  challenge_interface.scripts.deploy --port <port> --checkpoint-dir <dir>
 ```
 
-3) From another terminal, run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/challenge_interface/scripts/phase1_eval.py) outside the policy server container for evaluation.
+3) From another terminal, run the [benchmark eval client](https://github.com/RoboMME/robomme_benchmark/blob/main/challenge_interface/scripts/phase1_eval.py) outside the policy server container for evaluation.
 
 ```
 cd <robomme_benchmark>
@@ -92,7 +92,7 @@ docker login
 docker push <dockerhub_user>/<my_cool_model_name>:latest
 ```
 
-For example, organizers pushed an image for [framesamp+modul](https://hub.docker.com/repository/docker/yinpeidai/my_cool_model_name/general) to Docker Hub.
+For example, organizers pushed an image for [framesamp+modul](https://hub.docker.com/repository/docker/yinpeidai/perceptual-framesamp-modul/general) to Docker Hub.
 
 
 ### 7) Submit your policy 
@@ -108,7 +108,7 @@ Prepare the following information
 - **Command to start the policy server**, e.g. `uv run python -m challenge_interface.scripts.deploy --checkpoint-dir runs/ckpts/perceptual-framesamp-modul/79999`. The organizers will run `deploy.py` to start your policy server, then run evaluation.
 - others: `use_depth`, `use_camera_params` (default false)
 
-An example JSON file can be found [here](eval_ai_submission_example_docker.json).
+An example JSON file can be found [here](https://github.com/RoboMME/robomme_policy_learning/blob/main/challenge_interface/docs/submission_example_docker.json).
 
 
 ---

@@ -1,11 +1,11 @@
-# MME-VLA Policy Learning and Evaluation
+# 🚀 MME-VLA Policy Learning and Evaluation
 
 ### [Website](https://robomme.github.io/) | [Paper](https://arxiv.org/abs/2603.04639) | [Benchmark Repo](https://github.com/RoboMME/robomme_benchmark) | [Dataset](https://huggingface.co/Yinpei/robomme_data_h5) | [Models](https://huggingface.co/Yinpei/mme_vla_suite) | [Leaderboard](https://robomme.github.io/leaderboard.html)
 
 ### 🚀 Join Our Community: [WeChat Group](doc/WechatIMG365.jpg) | [Discord](https://discord.gg/xbmSqMd4)
 ![Robomme bench](assets/robomme_bench.jpg)
 
-## Outline
+## 🧭 Outline
 
 - [Updates](#updates)
 - [Installation](#installation)
@@ -30,16 +30,17 @@
 - [Acknowledgement](#acknowledgement)
 - [Citation](#citation)
 
-## Updates
+## 🗞️ Updates
 
+- [03/2026] We use MME-VLA (FrameSamp+Modul) as an example for RoboMME Challenge @ CVPR2026 Submission. Please see [here](https://github.com/RoboMME/robomme_policy_learning?tab=readme-ov-file#robomme-challenge-example) for more details.
 - [03/2026] We provide MME-VLA as a submission example for CVPR RoboMME Challenge. More detailes can be found [here](#robomme-challenge).
 - [03/2026] 🚀 We release MME-VLA Suite, a family of memory-augmented vision-language-action (VLA) models based on the $\pi_{0.5}$ backbone. See our [paper](https://arxiv.org/abs/2603.04639) and [leaderboard](https://robomme.github.io/leaderboard.html) for more details and analysis.
 
 
-## Installation
+## 📦 Installation
 
-### Install with UV
-#### Install Policy Learning Repo
+### 🧩 Install with UV
+#### 📥 Install Policy Learning Repo
 ```
 GIT_LFS_SKIP_SMUDGE=1 uv sync
 GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
@@ -48,7 +49,7 @@ GIT_LFS_SKIP_SMUDGE=1 uv pip install -e .
 Set the `OPENPI_DATA_HOME` path in your `~/.bashrc`, e.g. `export OPENPI_DATA_HOME=<your_openpi_homedir>`. For more details, please refer to [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main?tab=readme-ov-file#fine-tuned-models).
 
 
-#### Install RoboMME Simulator
+#### 🎮 Install RoboMME Simulator
 Clone the RoboMME submodule:
 ```
 git submodule update --init
@@ -58,12 +59,13 @@ Then install the RoboMME environment following the documentation [here](examples
 We use separate environments for VLA training/inference and the RoboMME simulator. During evaluation, we use a WebSocket connection between them, following [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main).
 
 
-### Install with Docker
+### 🐳 Install with Docker
 After [downloading the data](#download) in the `data` directory and setting up `runs` in the following [structure](#repository-structure). 
 Update the RoboMME submodule with `git submodule update --init`.
 Then build the Docker image following [this](docs/docker_installation.md).
 
-## QuickStart
+## ⚡ QuickStart
+### Evaluation
 After install everyhing correctly, download our best MME-VLA model (i.e., framesamp-modul) from huggingface
 ```
 git clone https://huggingface.co/Yinpei/perceptual-framesamp-modul <your_specify_model_path>
@@ -80,9 +82,36 @@ CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --arg
 Then the evaluations results will be stored in `runs/evaluation/<your_specify_policy_name>/ckpt79999/seed7`
 > Remember to manually set CUDA_VISIBLE_DEVICES using one card for serve_policy.py, as JAX will automatically use all GPUs by default.
 
+### Training 
+```bash
+# Build the assets for MME-VLA and copy the provided norm_stats.json
+mkdir -p runs/assets/mme_vla_suite 
+cp -r assets/norm_stats.json runs/assets/mme_vla_suite
 
 
-## Repository Structure
+# Download a small set of preprocessed training dataset for quick training 
+mkdir data
+git clone git@hf.co:datasets/Yinpei/robomme_preprocessed_data_sample data/robomme_preprocessed_data_sample
+
+# Train the MME-VLA model
+# Memory Requirement: 4xA40 40GB GPU or 1xH100 80GB GPU
+export WANDB_API_KEY=<YOUR_WANDB_API_KEY>
+export CUDA_VISIBLE_DEVICES=0,1,2,3
+export MME_VLA_TYPE="perceptual-framesamp-modul"
+XLA_PYTHON_CLIENT_MEM_FRACTION=0.95 uv run scripts/train.py mme_vla_suite \
+--exp-name=<model_name> \
+--batch-size=64 \
+--num-workers=4 \
+--fsdp-devices=4 \
+--dataset-path=data/robomme_preprocessed_data_sample \
+--model.use_history \
+--model.history_config="${MME_VLA_TYPE}.yaml"
+```
+
+All possible configs can be found in `src/mme_vla_suite/models/config/robomme`
+
+
+## 🗂️ Repository Structure
 ```
 .
 ├── data
@@ -110,9 +139,9 @@ Then the evaluations results will be stored in `runs/evaluation/<your_specify_po
 
 This repository is built on top of [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main). We highly recommend becoming familiar with OpenPi first before working with this repo.
 
-## Download
+## ⬇️ Download
 
-### Download Training Data
+### 🧱 Download Training Data
 Place all data under the `data` directory:
 ```
 mkdir data && cd data
@@ -134,7 +163,7 @@ Alternatively, you can run `uv run scripts/build_dataset.py` to generate the pre
 We also provide data in the LeRobot format [here](https://huggingface.co/datasets/Yinpei/robomme_data_lerobot). In our experiments, however, the LeRobot dataloader significantly increased CPU memory usage during training, which can be a bottleneck in shared training environments (e.g., on HPC clusters). For this reason, we use our custom data format and [dataloader](https://github.com/RoboMME/robomme_policy_learning/blob/89efeaab461cc2b00ede344edf4283692e9c3ada/src/mme_vla_suite/training/dataset.py#L42) in this repository. 
 
 
-### Download Pre-trained Models
+### 🧠 Download Pre-trained Models
 Download the $\pi_{0.5}$-base backbone:
 ```
 uv run scripts/download_pi05_base.py
@@ -145,7 +174,7 @@ cd $OPENPI_DATA_HOME
 git clone git@hf.co:Yinpei/pi05_vision_encoder
 ```
 
-### Download Fine-tuned VLA/VLM Checkpoints (Optional)
+### 🧪 Download Fine-tuned VLA/VLM Checkpoints (Optional)
 Fine-tuned models and evaluation results are stored under the `runs` directory. Create it if needed:
 ```
 mkdir runs
@@ -179,9 +208,9 @@ uv run ./scripts/unzip_ckpt.py runs/ckpts
 to unzip all of them.
 
 
-## Model Training
+## 🏋️ Model Training
 
-### Data Preparation
+### 🧰 Data Preparation
 Prepare training data by either downloading [preprocessed files](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data) or running:
 ```
 uv run scripts/build_robomme_dataset.py   --dataset_type robomme_pkl  --raw_data_path=<downloaded_h5_data_dir> --preprocessed_data_path=<your_target_dir>
@@ -206,20 +235,20 @@ This produces the following structure under `runs`:
 
 You can also compare against our reference `norm_stats.json` provided [here](assets/norm_stats.json) to check whether your processing is correct. Small differences are acceptable.
 
-### Train π₀.₅ baseline
+### 🎛️ Train π₀.₅ baseline
 This variant does not use history and fine-tunes the $\pi_{0.5}$ checkpoints with the vision encoder frozen (for comparison with MME-VLA):
 ```
 bash scripts/finetune_pi05_baseline.sh
 ```
 You can change `--exp-name` to suit your own experiment naming.
 
-### Train MME-VLA policies
+### 🧠 Train MME-VLA policies
 ```
 bash scripts/finetune_mme_vla_suite.sh
 ```
 Set `MME_VLA_TYPE` to train a specific model variant. You can also change `--exp-name` to suit your own experiment naming.
 
-### Train VLM subgoal predictor
+### 🧭 Train VLM subgoal predictor
 [robomme_preprocessed_data](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data) already contains VLM subgoal prediction data, but you can also generate it with:
 ```
 uv run scripts/build_robomme_dataset.py  --dataset_type vlm_subgoal_qwenvl  --raw_data_path=<downloaded_h5_data_dir> --preprocessed_data_path=<your_target_dir>
@@ -234,9 +263,9 @@ bash scripts/finetune_vlm_subgoal_predictor.sh
 Set `DATASET_PATH` according to which VLM you are training: (1) simple subgoals, (2) grounded subgoals, or (3) MemER-style subgoals.
 
 
-## Evaluation
+## 🧪 Evaluation
 
-### Evaluation with the integrated script
+### 🚀 Evaluation with the integrated script
 After downloading the fine-tuned checkpoints, run:
 ```
 bash scripts/eval.sh
@@ -250,11 +279,11 @@ Set the `MODEL_TYPE` variable to one of the following:
 Running `eval.sh` automatically starts two tmux windows: one for the policy server and one for RoboMME evaluation. If the evaluation is interrupted, you can rerun the script; it will automatically resume from the generated `progress.json`.
 
 
-### Manual evaluation (per model)
+### ✍️ Manual evaluation (per model)
 Details are provided [here](docs/manual_evaluation.md).
 
 
-## RoboMME Challenge Example
+## 🏆 RoboMME Challenge Example
 
 We provide a policy-serving example in the [`challenge_interface`](challenge_interface) directory for [RoboMME Challenge](https://robomme.github.io/challenge.html) submission.
 
@@ -267,7 +296,7 @@ We offer threee ways for model submission:
 We highly recommend that you first fully understand the MME-VLA policy learning pipeline before diving into this section.
 
 
-## Troubleshooting
+## 🛠️ Troubleshooting
 Q1: Vulkan installation fails.  
 A1: Please refer to the ManiSkill [solution](https://maniskill.readthedocs.io/en/latest/user_guide/getting_started/installation.html#vulkan). If it still does not work, we recommend reinstalling the NVIDIA driver and Vulkan packages. We use NVIDIA driver 570.211.01 and Vulkan 1.3.275. You can also switch to CPU rendering:
 ```
@@ -281,11 +310,11 @@ A2: We observed that, on long-horizon tasks such as VideoPlaceButton, the WebSoc
 Q3: CUDA runs out of memory when training VLA models.  
 A3: You can set the environment variable `XLA_PYTHON_CLIENT_MEM_FRACTION=0.95` to allow JAX to use more GPU memory.
 
-## Acknowledgement
+## 🙏 Acknowledgement
 This work was supported in part by NSF SES-2128623, NSF CAREER #2337870, NSF NRI #2220876, NSF NAIRR250085, and NSF IIS-1949634. We would also like to thank the excellent [OpenPi](https://github.com/Physical-Intelligence/openpi/tree/main) codebase from Physical-Intelligence.
 
 
-## Citation
+## 📝 Citation
 
 ```
 @article{dai2026robomme,
