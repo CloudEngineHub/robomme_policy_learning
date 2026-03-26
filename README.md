@@ -88,10 +88,10 @@ Then the evaluations results will be stored in `runs/evaluation/<your_specify_po
 mkdir -p runs/assets/mme_vla_suite 
 cp -r assets/norm_stats.json runs/assets/mme_vla_suite
 
-
 # Download a small set of preprocessed training dataset for quick training 
 mkdir data
 git clone git@hf.co:datasets/Yinpei/robomme_preprocessed_data_sample data/robomme_preprocessed_data_sample
+# unzip the data file
 
 # Train the MME-VLA model
 # Memory Requirement: 4xA40 40GB GPU or 1xH100 80GB GPU
@@ -213,7 +213,7 @@ to unzip all of them.
 ### 🧰 Data Preparation
 Prepare training data by either downloading [preprocessed files](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data) or running:
 ```
-uv run scripts/build_robomme_dataset.py   --dataset_type robomme_pkl  --raw_data_path=<downloaded_h5_data_dir> --preprocessed_data_path=<your_target_dir>
+uv run scripts/build_dataset.py --dataset_type robomme_pkl --raw_data_path <downloaded_h5_data_dir> --preprocessed_data_path <your_target_dir>
 ```
 
 Then compute normalization statistics (this takes about 3 minutes):
@@ -251,8 +251,8 @@ Set `MME_VLA_TYPE` to train a specific model variant. You can also change `--exp
 ### 🧭 Train VLM subgoal predictor
 [robomme_preprocessed_data](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data) already contains VLM subgoal prediction data, but you can also generate it with:
 ```
-uv run scripts/build_robomme_dataset.py  --dataset_type vlm_subgoal_qwenvl  --raw_data_path=<downloaded_h5_data_dir> --preprocessed_data_path=<your_target_dir>
-uv run scripts/build_robomme_dataset.py  --dataset_type vlm_subgoal_memer  --raw_data_path=<downloaded_h5_data_dir> --preprocessed_data_path=<your_target_dir>
+uv run scripts/build_dataset.py --dataset_type vlm_subgoal_qwenvl  --raw_data_path=<downloaded_h5_data_dir> --preprocessed_data_path=<your_target_dir>
+uv run scripts/build_dataset.py --dataset_type vlm_subgoal_memer  --raw_data_path=<downloaded_h5_data_dir> --preprocessed_data_path=<your_target_dir>
 ```
 
 After the data is ready, run:
