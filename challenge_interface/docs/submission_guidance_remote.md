@@ -1,6 +1,6 @@
 # RoboMME Challenge Guide: Remote API Submission
 
-This document explains how to serve your policy **from your own machine** (no Docker image submission) and submit a **public host + port** for CVPR challenge evaluation.
+This document explains how to serve your policy **from your own machine** (without Docker image submission) and submit a **public host + port** for the CVPR challenge evaluation.
 
 ## What you (the participant) provide
 
@@ -13,7 +13,7 @@ Implement the `Policy` class compatible with the challenge [interface](https://g
 
 - Copy the [challenge_interface](https://github.com/RoboMME/robomme_benchmark/tree/main/challenge_interface) directory from the benchmark repo into your repo.
 
-  e.g., in this repo, we copied the participant-oriented files into the `challenge_interface` [directory](..).
+  For example, in this repo, we copied the participant-oriented files into the `challenge_interface` [directory](..).
 
   ```
   challenge_interface
@@ -27,18 +27,18 @@ Implement the `Policy` class compatible with the challenge [interface](https://g
 
 - Override **`infer`** and **`reset`** in your policy implementation.
   
-  e.g., we wrapped the original MME-VLA policy in the [`MyPolicy_for_CVPR_Challenge`](https://github.com/RoboMME/robomme_policy_learning/blob/main/challenge_interface/policy.py#L29) class for this challenge.
+  For example, we wrapped the original MME-VLA policy in the [`MyPolicy_for_CVPR_Challenge`](https://github.com/RoboMME/robomme_policy_learning/blob/main/challenge_interface/policy.py#L29) class for the challenge.
 
 - Adjust `challenge_interface/scripts/deploy.py` for your own policy.
 
-  e.g., in this repo, we modified into [this](https://github.com/RoboMME/robomme_policy_learning/blob/main/challenge_interface/scripts/deploy.py#L53) for the `MyPolicy_for_CVPR_Challenge` class.
+  For example, in this repo, we modified it into [this](https://github.com/RoboMME/robomme_policy_learning/blob/main/challenge_interface/scripts/deploy.py#L53) for the `MyPolicy_for_CVPR_Challenge` class.
 
 
 
 ### 2) Deploy your model
 
 ```
-CUDA_VISIBLE_DEVICES=0  uv run python -m  challenge_interface.scripts.deploy --transport <type> --port <port> --checkpoint-dir xxx
+CUDA_VISIBLE_DEVICES=0 uv run python -m challenge_interface.scripts.deploy --transport <type> --port <port> --checkpoint-dir xxx
 ```
 You can deploy on your own server or a cloud machine, as long as it has a public IP.
 
@@ -52,18 +52,18 @@ uv run python -m challenge_interface.scripts.phase1_eval --host <your_deployed_i
 ```
 
 
-### 4) Submit you policy
+### 4) Submit your policy
 
 Prepare the following information:
 
 - **model_name**
 - **email**
-- **action_space**: you can only choose one from "joint_angle", "ee_pose", "waypoint".
+- **action_space**: you can only choose one of "joint_angle", "ee_pose", or "waypoint".
 - **evaluation_method**: set as `api`.
 - **Host**
 - **Port**
 - **API key** (optional)
-- **Transport**: Websocket or HTTP
+- **Transport**: WebSocket or HTTP
 - **Country/Area**: where the host machine is located. We will choose nodes that are close to your host machine to reduce latency.
 - Other fields: `use_depth`, `use_camera_params` (default: `false`)
 
@@ -73,7 +73,7 @@ An example JSON file can be found [here](https://github.com/RoboMME/robomme_poli
 
 ## What the organizers will do
 
-After we receive your submitted JSON file, we will
+After we receive your submitted JSON file, we will:
 
 1) Connect to your submitted endpoint:
 
@@ -84,7 +84,7 @@ After we receive your submitted JSON file, we will
 For example:
 ```bash
 cd robomme_benchmark
-uv run python -m  challenge_interface.scripts.phase1_eval --host <your_deployed_ip_or_dns> --port <your_public_port> --transport <type>
+uv run python -m challenge_interface.scripts.phase1_eval --host <your_deployed_ip_or_dns> --port <your_public_port> --transport <type>
 ```
 
 Keep your endpoint stable during the evaluation period.

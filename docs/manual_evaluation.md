@@ -242,16 +242,16 @@ CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --arg
 
 
 ## Other Hints
-You can eval only for a subset of tasks 
+You can evaluate only a subset of tasks:
 ```
 python examples/robomme/eval.py --args.only_tasks="BinFill,PickXtimes" ...
 ```
-You can exclude or re-eval with `--args.exclude_tasks` and `--args.re_eval_tasks`
-Everything, you just rerun the `python examples/robomme/eval.py`, the evalution will automatically resume.
+You can exclude tasks or re-evaluate specific tasks with `--args.exclude_tasks` and `--args.re_eval_tasks`.
+If evaluation is interrupted, rerun `python examples/robomme/eval.py`; the evaluation will automatically resume.
 
 
-For `scripts/serve_policy.py`, you can change the `--seed` and `--policy.dir` to evaluate on different checkpoints and seeds.
-For `examples/robomme/eval.py`, ` --args.policy_name`, `--args.model_seed`, `--args.model_ckpt_id=79999` are used for generateing saving directory names. For example, a eval structure can be
+For `scripts/serve_policy.py`, you can change `--seed` and `--policy.dir` to evaluate different checkpoints and seeds.
+For `examples/robomme/eval.py`, `--args.policy_name`, `--args.model_seed`, and `--args.model_ckpt_id=79999` are used to generate the saved directory names. For example, an evaluation directory structure can be:
 ```
 runs/evaluation/perceptual-framesamp-modul
 ├── ckpt60000

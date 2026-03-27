@@ -1,9 +1,9 @@
 # Docker Installation for MME-VLA Policy Learning
 
-This guide sets up Docker and NVIDIA GPU support so you can build and run the MME-VLA image.
+This guide explains how to set up Docker and NVIDIA GPU support so you can build and run the MME-VLA image.
 
-## 1) Install Docker Engine 
-> Skip this if you already installed Docker.
+## 1) Install Docker Engine
+> Skip this if you have already installed Docker.
 
 Follow Docker’s official instructions for Ubuntu:
 - Docker Engine install guide: `https://docs.docker.com/engine/install/ubuntu/`
@@ -16,7 +16,7 @@ docker run --rm hello-world
 
 ## 2) Install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/1.14.1/install-guide.html) (GPU support)
 
-> Skip this if you already installed nvidia-ctk.
+> Skip this if you have already installed `nvidia-ctk`.
 
 Install the toolkit (Ubuntu):
 
@@ -87,28 +87,28 @@ Because these are bind mounts, files you create/modify inside the container will
 
 
 
-Evaluate the policy
+## 4) Evaluate the policy
 ```
 # terminal 0
 CUDA_VISIBLE_DEVICES=0 uv run scripts/serve_policy.py --seed=7  --port=$PORT policy:checkpoint --policy.dir=runs/ckpts/mme_vla_suite/perceptual-framesamp-modul/79999 --policy.config=mme_vla_suite
 
 # terminal 1 
-eval "$(micromamba shell hook --shell bash)
-micromamba activate robomme 
+eval "$(micromamba shell hook --shell bash)"
+micromamba activate robomme
 CUDA_VISIBLE_DEVICES=1 python examples/robomme/eval.py --args.model_seed=7 --args.port=$PORT --args.policy_name=perceptual-framesamp-modul --args.model_ckpt_id=79999
 ```
 
 
-## 4) Other Hints
+## 5) Other Hints
 
-To stop the container
+To stop the container:
 ```bash
 docker ps
 docker stop <container_id_or_name>
 ```
 Alternatively, inside the container shell you can stop the session with `exit` (or `Ctrl-D`).
 
-To rebuild the Docker image
+To rebuild the Docker image:
 ```bash
 docker build --no-cache -t <image_name>:<tag> .
 ```

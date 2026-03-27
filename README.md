@@ -33,7 +33,7 @@
 ## 🗞️ Updates
 
 - [03/2026] We use MME-VLA (FrameSamp+Modul) as an example for RoboMME Challenge @ CVPR2026 Submission. Please see [here](https://github.com/RoboMME/robomme_policy_learning?tab=readme-ov-file#robomme-challenge-example) for more details.
-- [03/2026] We provide MME-VLA as a submission example for CVPR RoboMME Challenge. More detailes can be found [here](#robomme-challenge).
+- [03/2026] We provide MME-VLA as a submission example for CVPR RoboMME Challenge. More details can be found [here](#robomme-challenge).
 - [03/2026] 🚀 We release MME-VLA Suite, a family of memory-augmented vision-language-action (VLA) models based on the $\pi_{0.5}$ backbone. See our [paper](https://arxiv.org/abs/2603.04639) and [leaderboard](https://robomme.github.io/leaderboard.html) for more details and analysis.
 
 
@@ -66,7 +66,7 @@ Then build the Docker image following [this](docs/docker_installation.md).
 
 ## ⚡ QuickStart
 ### Evaluation
-After install everyhing correctly, download our best MME-VLA model (i.e., framesamp-modul) from huggingface
+After installing everything correctly, download our best MME-VLA model (i.e., framesamp-modul) from Hugging Face.
 ```
 git clone https://huggingface.co/Yinpei/perceptual-framesamp-modul <your_specify_model_path>
 ```
@@ -292,11 +292,11 @@ Details are provided [here](docs/manual_evaluation.md).
 
 We provide a policy-serving example in the [`challenge_interface`](challenge_interface) directory for [RoboMME Challenge](https://robomme.github.io/challenge.html) submission.
 
-We offer threee ways for model submission:
+We offer three ways for model submission:
 
 1. **Docker-based submission**: see details [here](challenge_interface/docs/submission_guidance_docker.md).
 2. **Remote API submission**: see details [here](challenge_interface/docs/submission_guidance_remote.md).
-3. **Github Repo submission**: we will git clone your repo, install the environment, and run the policy server on our machine.
+3. **GitHub repo submission**: we will git clone your repo, install the environment, and run the policy server on our machine.
 
 We highly recommend that you first fully understand the MME-VLA policy learning pipeline before diving into this section.
 
