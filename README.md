@@ -1,6 +1,6 @@
 # 🚀 MME-VLA Policy Learning and Evaluation
 
-### [Website](https://robomme.github.io/) | [Paper](https://arxiv.org/abs/2603.04639) | [Benchmark Repo](https://github.com/RoboMME/robomme_benchmark) | [Dataset](https://huggingface.co/Yinpei/robomme_data_h5) | [Models](https://huggingface.co/Yinpei/mme_vla_suite) | [Leaderboard](https://robomme.github.io/leaderboard.html)
+### [Website](https://robomme.github.io/) | [Paper](https://arxiv.org/abs/2603.04639) | [Benchmark Repo](https://github.com/RoboMME/robomme_benchmark) | [Dataset](https://huggingface.co/datasets/Yinpei/robomme_data_h5) | [Models](https://huggingface.co/Yinpei/mme_vla_suite) | [Leaderboard](https://robomme.github.io/leaderboard.html)
 
 ### 🚀 Join Our Community: [WeChat Group](doc/WechatIMG365.jpg) | [Discord](https://discord.gg/xbmSqMd4)
 ![Robomme bench](assets/robomme_bench.jpg)
@@ -147,10 +147,15 @@ Place all data under the `data` directory:
 mkdir data && cd data
 ```
 
-Download the raw RoboMME training files [here](https://huggingface.co/Yinpei/robomme_data_h5):
+Download the raw RoboMME training files [here](https://huggingface.co/datasets/Yinpei/robomme_data_h5):
 ```
-git clone git@hf.co:Yinpei/robomme_data_h5 data/robomme_data_h5
+git clone git@hf.co:datasets/Yinpei/robomme_data_h5 data/robomme_data_h5
 ```
+Then run 
+```
+uv run scripts/tarxz_h5.py decompress --input_dir data/robomme_data_h5 --jobs 16 --remove_archive
+```
+to extract the *.xz files.
 
 (Optional) Download preprocessed RoboMME data [here](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data):
 ```

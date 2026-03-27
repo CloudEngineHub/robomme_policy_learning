@@ -210,27 +210,13 @@ class DatasetProcessor:
                 )
                 if self.max_episodes is not None:
                     episode_indices = episode_indices[:self.max_episodes]
-                for episode_idx in episode_indices:
-                    episode_data = data[f"episode_{episode_idx}"]
-                    num_timesteps = sum(1 for k in episode_data.keys() if k.startswith("timestep_"))
-                    exec_start_idx = self._first_execution_step(episode_data)
-                    
-                    for step_idx in range(num_timesteps):
-                        ts = episode_data[f"timestep_{step_idx}"]
-                        is_video_demo = step_idx < exec_start_idx
-                        assert ts["info"]["is_video_demo"][()] == is_video_demo, "is_video_demo mismatch"
-                         
-                        if not is_video_demo:
-                            exec_sample_id += 1
-                        total_sample_id += 1
-                print(f"Episode {episode_idx}: timesteps={num_timesteps}, exec_start={exec_start_idx}, exec_sample_id={exec_sample_id}, total_sample_id={total_sample_id}")
-                    
-                    # global_episode_idx, mem_buffer, exec_sample_id, total_sample_id = (
-                    #     self._process_episode(
-                    #         data, episode_idx, global_episode_idx,
-                    #         mem_buffer, exec_sample_id, total_sample_id,
-                    #     )
-                    # )
+                for episode_idx in episode_indices:  
+                    global_episode_idx, mem_buffer, exec_sample_id, total_sample_id = (
+                        self._process_episode(
+                            data, episode_idx, global_episode_idx,
+                            mem_buffer, exec_sample_id, total_sample_id,
+                        )
+                    )
 
         stats = {"execution_samples": exec_sample_id, "total_samples": total_sample_id}
         with open(os.path.join(self.meta_path, "stats.json"), "w") as f:
