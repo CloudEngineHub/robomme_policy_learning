@@ -253,6 +253,8 @@ bash scripts/finetune_mme_vla_suite.sh
 ```
 Set `MME_VLA_TYPE` to train a specific model variant. You can also change `--exp-name` to suit your own experiment naming.
 
+We provide a sample training-curve description in [`docs/training_curve_sample.md`](docs/training_curve_sample.md).
+
 ### 🧭 Train VLM subgoal predictor
 [robomme_preprocessed_data](https://huggingface.co/datasets/Yinpei/robomme_preprocessed_data) already contains VLM subgoal prediction data, but you can also generate it with:
 ```
