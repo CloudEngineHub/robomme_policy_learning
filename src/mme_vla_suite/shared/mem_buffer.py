@@ -62,7 +62,7 @@ class MemoryBuffer:
                 self.vision_enc = jax.jit(siglip_tokenizer.__call__)
             else:
                 self.vision_enc = vision_enc_fn
-            pos_embedder = PosEmb3D(dim=pos_emb_dim)
+            self.pos_embedder = pos_embedder = PosEmb3D(dim=pos_emb_dim)
             ranges = jnp.arange(max_steps)
             self.pos_emb_dict = {
                 "8x8": np.array(pos_embedder(ranges, 8)),
@@ -74,6 +74,21 @@ class MemoryBuffer:
             self.vision_enc = None
             self.pos_emb_dict = None
         
+    def _positions_for_batch(self, step_idx_list):
+        """Keep the original cache; generate overflow positions for this batch.
+
+        OOD execution can exceed the 4096-frame cache even after demo sampling.
+        Generating only the new batch avoids retaining successively larger
+        copies of the full positional cache through saved history views.
+        """
+        end = (max(step_idx_list) + 1) * self.num_views
+        if end <= len(self.pos_emb_dict["8x8"]):
+            return self.pos_emb_dict, 0
+        start = min(step_idx_list) * self.num_views
+        positions = jnp.arange(start, end)
+        return {f"{size}x{size}": np.array(self.pos_embedder(positions, size))
+                for size in (8, 4, 2)}, start
+
     def add_buffer(
         self,
         images, #: (t v h w 3), np.int8
@@ -97,17 +112,17 @@ class MemoryBuffer:
         pooled_emb_4x4 = pool_tokens_to_size(output_emb, 16)  # (t, v, 16, 2048)
         pooled_emb_2x2 = pool_tokens_to_size(output_emb, 4)  # (t, v, 4, 2048)
         
+        positions, position_start = self._positions_for_batch(step_idx_list)
         for i, step_idx in enumerate(step_idx_list):
             image_emb_8x8 = jax.device_get(pooled_emb_8x8)[i]  # (v, 64, 2048)
             image_emb_4x4 = jax.device_get(pooled_emb_4x4)[i]  # (v, 16, 2048)
             image_emb_2x2 = jax.device_get(pooled_emb_2x2)[i]  # (v, 4, 2048)
             
-            pos_emb_8x8 = self.pos_emb_dict["8x8"][
-                step_idx*self.num_views : (step_idx+1)*self.num_views]  # (v, 64, 768)
-            pos_emb_4x4 = self.pos_emb_dict["4x4"][
-                step_idx*self.num_views : (step_idx+1)*self.num_views]  # (v, 16, 768)
-            pos_emb_2x2 = self.pos_emb_dict["2x2"][
-                step_idx*self.num_views : (step_idx+1)*self.num_views]  # (v, 4, 768)
+            start = step_idx*self.num_views - position_start
+            end = start + self.num_views
+            pos_emb_8x8 = positions["8x8"][start:end]  # (v, 64, 768)
+            pos_emb_4x4 = positions["4x4"][start:end]  # (v, 16, 768)
+            pos_emb_2x2 = positions["2x2"][start:end]  # (v, 4, 768)
             
             token_emb_to_save = {
                 "image_pixels": images[i].copy(), # fp32, this is for visualization
